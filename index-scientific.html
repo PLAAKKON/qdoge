@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QDOGE | Quantum Doge Research Initiative</title>
+    <meta name="description" content="QDOGE - Quantum Distributed Optimization for Generalized Exchanges on Solana">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Computer+Modern&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles-scientific.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="paper-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="pixel-logo">
+                    <img src="logo.png" alt="QDOGE">
+                </div>
+                <nav class="nav-links">
+                    <a href="#abstract">Abstract</a>
+                    <a href="#methodology">Method</a>
+                    <a href="#tokenomics">Tokenomics</a>
+                    <a href="#implementation">Implementation</a>
+                    <a href="#references">References</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Title Section -->
+    <main class="paper-content">
+        <article class="research-paper">
+            <!-- Title Block -->
+            <section class="title-block">
+                <h1 class="paper-title">
+                    QDOGE: Quantum Distributed Optimization for<br>
+                    Generalized Exchanges on Solana Blockchain
+                </h1>
+                <div class="authors">
+                    <p class="author-line">Anonymous Contributors</p>
+                    <p class="affiliation">Quantum Doge Research Initiative</p>
+                    <p class="email">contact@qdoge.sol</p>
+                </div>
+                <div class="paper-meta">
+                    <span class="date">March 2026</span>
+                    <span class="version">Version 1.0</span>
+                </div>
+            </section>
+
+            <!-- Abstract -->
+            <section id="abstract" class="paper-section">
+                <h2>Abstract</h2>
+                <div class="abstract-box">
+                    <p>
+                        We present <strong>QDOGE</strong> (Quantum Doge), a novel decentralized token built on the Solana 
+                        blockchain that leverages community-driven mechanisms for value propagation. Our approach 
+                        combines the viral nature of meme-based assets with Solana's high-throughput, low-latency 
+                        consensus mechanism. We demonstrate that QDOGE achieves transaction finality in 
+                        &lt;400ms with fees approaching $0.00025 per transaction. The token implements a 
+                        fixed supply model with transparent on-chain governance.
+                    </p>
+                </div>
+                <div class="keywords">
+                    <strong>Keywords:</strong> Solana, Meme Token, Decentralized Finance, Community Token, SPL Token
+                </div>
+            </section>
+
+            <!-- Figure 1: The QDOGE -->
+            <section class="figure-section">
+                <figure class="paper-figure">
+                    <div class="figure-frame">
+                        <img src="logo.png" alt="QDOGE Token Symbol" class="pixel-figure">
+                    </div>
+                    <figcaption>
+                        <strong>Figure 1:</strong> The QDOGE token symbol rendered in pixel art format 
+                        (96 × 96 binary matrix representation). Each pixel p<sub>ij</sub> ∈ {0, 1} 
+                        represents the quantum state of the Doge entity.
+                    </figcaption>
+                </figure>
+            </section>
+
+            <!-- Introduction -->
+            <section id="methodology" class="paper-section">
+                <h2>1. Introduction</h2>
+                <p>
+                    The emergence of meme-based cryptocurrencies has demonstrated the power of 
+                    community-driven value creation in decentralized systems. Unlike traditional 
+                    assets, meme tokens derive their value from social consensus and viral 
+                    propagation mechanisms <sup>[1]</sup>.
+                </p>
+                <p>
+                    In this paper, we introduce QDOGE, a Solana-based token that aims to 
+                    establish a new paradigm in community-owned digital assets. The Solana 
+                    blockchain provides the ideal substrate for QDOGE due to its:
+                </p>
+                <ul class="paper-list">
+                    <li>High throughput: 65,000+ TPS theoretical maximum</li>
+                    <li>Low latency: ~400ms block time</li>
+                    <li>Minimal fees: ~$0.00025 per transaction</li>
+                    <li>Proof of History consensus mechanism</li>
+                </ul>
+
+                <h3>1.1 Problem Statement</h3>
+                <p>
+                    Let <em>V(t)</em> denote the value of a meme token at time <em>t</em>. 
+                    Traditional models fail to capture the non-linear dynamics of community-driven 
+                    assets. We propose a belief propagation model where:
+                </p>
+                <div class="equation">
+                    V(t+1) = V(t) · ∏<sub>i∈N(t)</sub> m<sub>i→t</sub>(x)
+                </div>
+                <p>
+                    where <em>m<sub>i→t</sub></em> represents the message (belief) passed from 
+                    holder <em>i</em> to the network at time <em>t</em>.
+                </p>
+            </section>
+
+            <!-- Tokenomics -->
+            <section id="tokenomics" class="paper-section">
+                <h2>2. Tokenomics</h2>
+                <p>
+                    The QDOGE token implements a fixed-supply model with the following distribution:
+                </p>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Allocation</th>
+                            <th>Percentage</th>
+                            <th>Tokens</th>
+                            <th>Vesting</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Community Distribution</td>
+                            <td>50%</td>
+                            <td>500,000,000,000</td>
+                            <td>Unlocked</td>
+                        </tr>
+                        <tr>
+                            <td>Liquidity Pool</td>
+                            <td>30%</td>
+                            <td>300,000,000,000</td>
+                            <td>Locked</td>
+                        </tr>
+                        <tr>
+                            <td>Development</td>
+                            <td>10%</td>
+                            <td>100,000,000,000</td>
+                            <td>12 months</td>
+                        </tr>
+                        <tr>
+                            <td>Marketing</td>
+                            <td>10%</td>
+                            <td>100,000,000,000</td>
+                            <td>6 months</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td><strong>Total Supply</strong></td>
+                            <td><strong>100%</strong></td>
+                            <td><strong>1,000,000,000,000</strong></td>
+                            <td>-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <p class="table-caption">
+                    <strong>Table 1:</strong> QDOGE token distribution model. All allocations are 
+                    verifiable on-chain at the contract address.
+                </p>
+
+                <h3>2.1 Supply Mechanics</h3>
+                <p>
+                    QDOGE implements a deflationary mechanism through transaction burns:
+                </p>
+                <div class="equation">
+                    S(t+1) = S(t) - β · T(t)
+                </div>
+                <p>
+                    where <em>S(t)</em> is the total supply at time <em>t</em>, <em>T(t)</em> 
+                    is transaction volume, and <em>β</em> is the burn rate coefficient.
+                </p>
+            </section>
+
+            <!-- Implementation -->
+            <section id="implementation" class="paper-section">
+                <h2>3. Implementation</h2>
+                
+                <h3>3.1 How to Acquire QDOGE</h3>
+                <p>
+                    The following algorithm describes the acquisition process:
+                </p>
+                
+                <div class="code-block">
+                    <div class="code-header">Algorithm 1: QDOGE Acquisition</div>
+                    <pre><code>def acquire_qdoge():
+    """
+    Step-by-step process for acquiring QDOGE tokens
+    """
+    # Step 1: Install Solana wallet
+    wallet = install_wallet("Phantom" | "Solflare")
+    
+    # Step 2: Fund wallet with SOL
+    sol_balance = deposit_sol(wallet.address)
+    
+    # Step 3: Connect to DEX
+    dex = connect_dex("Raydium" | "Jupiter")
+    
+    # Step 4: Swap SOL for QDOGE
+    qdoge_amount = dex.swap(
+        from_token="SOL",
+        to_token="QDOGE",
+        amount=sol_balance,
+        slippage=0.5
+    )
+    
+    return qdoge_amount</code></pre>
+                </div>
+
+                <h3>3.2 Contract Information</h3>
+                <div class="contract-box">
+                    <p><strong>Token Name:</strong> Quantum Doge</p>
+                    <p><strong>Symbol:</strong> QDOGE</p>
+                    <p><strong>Decimals:</strong> 9</p>
+                    <p><strong>Network:</strong> Solana Mainnet</p>
+                    <p><strong>Contract Address:</strong></p>
+                    <code class="contract-address">TBA - Coming Soon</code>
+                </div>
+            </section>
+
+            <!-- Community -->
+            <section class="paper-section">
+                <h2>4. Community & Governance</h2>
+                <p>
+                    QDOGE operates under a decentralized governance model where token holders 
+                    can participate in key decisions through on-chain voting mechanisms.
+                </p>
+                
+                <div class="community-links">
+                    <h3>4.1 Official Channels</h3>
+                    <ul class="paper-list">
+                        <li><strong>X (Twitter):</strong> <a href="https://x.com/qdogesol" target="_blank">@qdogesol</a></li>
+                        <li><strong>Telegram:</strong> <a href="https://t.me/qdogesol" target="_blank">t.me/qdogesol</a></li>
+                        <li><strong>GitHub:</strong> <a href="https://github.com/PLAAKKON" target="_blank">github.com/PLAAKKON</a></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- References -->
+            <section id="references" class="paper-section">
+                <h2>References</h2>
+                <ol class="references-list">
+                    <li>
+                        Nakamoto, S. (2008). Bitcoin: A Peer-to-Peer Electronic Cash System. 
+                        <em>bitcoin.org</em>
+                    </li>
+                    <li>
+                        Yakovenko, A. (2017). Solana: A new architecture for a high performance 
+                        blockchain. <em>Solana Whitepaper</em>
+                    </li>
+                    <li>
+                        Buterin, V. (2013). Ethereum: A Next-Generation Smart Contract and 
+                        Decentralized Application Platform. <em>Ethereum Whitepaper</em>
+                    </li>
+                    <li>
+                        Pearl, J. (1988). Probabilistic Reasoning in Intelligent Systems: 
+                        Networks of Plausible Inference. <em>Morgan Kaufmann</em>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Footer -->
+            <footer class="paper-footer">
+                <div class="footer-content">
+                    <p class="disclaimer">
+                        <strong>Disclaimer:</strong> This document is for informational purposes only 
+                        and does not constitute financial advice. Cryptocurrency investments carry 
+                        significant risk. Do your own research before investing.
+                    </p>
+                    <div class="footer-links">
+                        <a href="https://x.com/qdogesol">X</a>
+                        <a href="https://t.me/qdogesol">Telegram</a>
+                        <a href="https://github.com/PLAAKKON">GitHub</a>
+                    </div>
+                    <p class="copyright">© 2026 QDOGE Research Initiative. MIT License.</p>
+                </div>
+            </footer>
+        </article>
+    </main>
+
+    <script src="script-scientific.js"></script>
+</body>
+</html>
