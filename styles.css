@@ -761,6 +761,135 @@ section {
     font-size: 1.1rem;
 }
 
+/* Zoom Levels */
+.comic-page-container.zoom-1 .comic-page {
+    width: 120%;
+    max-width: none;
+    transform: none;
+}
+
+.comic-page-container.zoom-2 .comic-page {
+    width: 150%;
+    max-width: none;
+    transform: none;
+}
+
+.comic-page-container.zoom-1,
+.comic-page-container.zoom-2 {
+    overflow: auto;
+    cursor: grab;
+}
+
+.comic-page-container.zoom-1:active,
+.comic-page-container.zoom-2:active {
+    cursor: grabbing;
+}
+
+.zoom-btn.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.zoom-btn.active-2 {
+    background: var(--accent-green, #22c55e);
+    border-color: var(--accent-green, #22c55e);
+}
+
+/* Fullscreen Mode */
+.comic-reader.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    z-index: 9999;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.comic-reader.fullscreen .comic-display {
+    flex: 1;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.comic-reader.fullscreen .comic-page-container {
+    flex: 1;
+    max-height: none;
+    min-height: 0;
+    border-radius: 0;
+}
+
+.comic-reader.fullscreen .comic-page {
+    max-height: calc(100vh - 200px);
+}
+
+.comic-reader.fullscreen .nav-arrow {
+    opacity: 0;
+    width: 80px;
+    height: 80px;
+    transition: opacity 0.3s;
+}
+
+.comic-reader.fullscreen .nav-arrow.visible {
+    opacity: 1;
+}
+
+.comic-reader.fullscreen .nav-prev {
+    left: 32px;
+}
+
+.comic-reader.fullscreen .nav-next {
+    right: 32px;
+}
+
+.comic-reader.fullscreen .comic-controls {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 16px 24px;
+    border-radius: 16px;
+    z-index: 10;
+}
+
+.comic-reader.fullscreen .comic-controls.visible {
+    opacity: 1;
+}
+
+.comic-reader.fullscreen .thumbnail-strip {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 0;
+    padding: 16px 24px;
+    z-index: 10;
+}
+
+.comic-reader.fullscreen .thumbnail-strip.visible {
+    opacity: 1;
+}
+
+body.comic-fullscreen {
+    overflow: hidden;
+}
+
 /* Join Section */
 .join-section {
     background: var(--gray-200);
