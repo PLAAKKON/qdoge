@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Doge 🐕✨ | Nature's Math, One Dog at a Time</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <title>Quantum Doge | Nature's Math, One Dog at a Time</title>
     <meta name="description" content="Quantum Doge - Exploring fun, positive ideas from the mathematics of nature. A playful experiment in finding the 'formula' of a dog.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +12,6 @@
     <link rel="icon" type="image/png" href="qdoge_new.png">
 </head>
 <body>
-    <!-- Floating particles background -->
-    <div class="particles" id="particles"></div>
-
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -27,99 +24,173 @@
                     <a href="#about">About</a>
                     <a href="#video">Video</a>
                     <a href="#comic">Comic</a>
-                    <a href="#join">Join Us</a>
+                    <a href="#join">Join</a>
                 </nav>
-                <a href="https://x.com/Lujuuslaskentak" target="_blank" class="btn btn-secondary" style="padding: 10px 16px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                </a>
-                <a href="https://t.me/qdogesol" target="_blank" class="btn btn-telegram">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/>
-                    </svg>
-                    Telegram
-                </a>
+                <div class="social-buttons">
+                    <a href="https://x.com/Lujuuslaskentak" target="_blank" class="btn-social">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                    <a href="https://t.me/qdogesol" target="_blank" class="btn-social">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-badge">🐕 Solana Token</div>
-                <h1 class="hero-title">
-                    Discovering Nature's Math,<br>
-                    <span class="gradient-text">One Dog at a Time</span> ✨
-                </h1>
-                <p class="hero-description">
-                    Exploring fun, positive ideas from the mathematics of nature.<br>
-                    A playful experiment in finding the "formula" of a dog 🐕✨
-                </p>
-                <div class="hero-buttons">
-                    <a href="#comic" class="btn btn-primary">📖 Read the Comic</a>
-                    <a href="https://t.me/qdogesol" target="_blank" class="btn btn-secondary">Join the Experiment</a>
-                </div>
-                <div class="contract-address">
-                    <span class="contract-label">Contract Address:</span>
-                    <code class="contract-code" id="contractAddress">E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump</code>
-                    <button class="copy-btn" onclick="copyAddress()">📋 Copy</button>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="doge-container">
-                    <img src="qdoge_new.png" alt="Quantum Doge" class="doge-image">
-                    <div class="math-symbols">
-                        <span class="symbol s1">φ</span>
-                        <span class="symbol s2">π</span>
-                        <span class="symbol s3">∞</span>
-                        <span class="symbol s4">Σ</span>
-                        <span class="symbol s5">√</span>
-                        <span class="symbol s6">∫</span>
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
+        <!-- Stats Header -->
+        <div class="hero-header">
+            <div class="container">
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Network</div>
+                        <div class="stat-value">Solana</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Symbol</div>
+                        <div class="stat-value">LAIKA</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Chart</div>
+                        <div class="stat-value">
+                            <a href="https://dexscreener.com/solana/e2aqyizkyftvrvr4g8vmmbpfd86pigicwwarkujdpump" target="_blank">DexScreener →</a>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Hero Main -->
+        <div class="hero-main">
+            <div class="hero-grid">
+                <div class="hero-image">
+                    <img src="qdoge_new.png" alt="Quantum Doge">
+                </div>
+                <div class="hero-text">
+                    <h1 class="hero-title">$QDOGE</h1>
+                    <p class="hero-subtitle">DISCOVERING NATURE'S MATH, ONE DOG AT A TIME</p>
+                    <div class="hero-buttons">
+                        <a href="#comic" class="btn btn-primary">READ COMIC</a>
+                        <a href="https://t.me/qdogesol" target="_blank" class="btn btn-secondary">JOIN TELEGRAM</a>
+                    </div>
+                    <div class="social-buttons">
+                        <a href="https://x.com/Lujuuslaskentak" target="_blank" class="btn-social">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                        <a href="https://t.me/qdogesol" target="_blank" class="btn-social">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/>
+                            </svg>
+                        </a>
+                        <a href="https://dexscreener.com/solana/e2aqyizkyftvrvr4g8vmmbpfd86pigicwwarkujdpump" target="_blank" class="btn-social">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"></path>
+            </svg>
         </div>
     </section>
 
     <!-- About Section -->
     <section id="about" class="about">
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
         <div class="container">
-            <div class="about-grid">
-                <div class="about-card">
-                    <div class="card-icon">🔬</div>
+            <div class="about-card">
+                <h2 class="about-title">WHAT IS QUANTUM DOGE?</h2>
+                <div class="about-text">
+                    <p><strong>A playful experiment</strong> in finding the "formula" of a dog.</p>
+                    <p>Quantum Doge explores the beautiful mathematics woven into the natural world. From Fibonacci spirals to fractal coastlines — we're discovering patterns that make nature tick.</p>
+                    <p>All skill levels welcome. Whether you're a mathematician or just curious about dogs and numbers, join the fun!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔬</div>
                     <h3>The Experiment</h3>
                     <p>A fun, open experiment to find the "formula" behind the chaos. What patterns hide in nature? What math makes a dog... a dog?</p>
                 </div>
-                <div class="about-card">
-                    <div class="card-icon">🌿</div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌿</div>
                     <h3>Nature's Math</h3>
                     <p>From Fibonacci spirals to fractal coastlines — we explore the beautiful mathematics woven into the natural world.</p>
                 </div>
-                <div class="about-card">
-                    <div class="card-icon">🤝</div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
                     <h3>All Welcome</h3>
                     <p>All skill levels welcome — your ideas matter here. Whether you're a mathematician or just curious, join the fun!</p>
                 </div>
-            </div>
-            <div class="mission-box">
-                <div class="mission-emoji">🐕✨</div>
-                <blockquote>
-                    "A playful experiment in finding the 'formula' of a dog.<br>
-                    Discovering nature's math, one dog at a time."
-                </blockquote>
             </div>
         </div>
     </section>
 
     <!-- Video Section -->
     <section id="video" class="video-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>🎬 Featured Video</h2>
-                <p>See Quantum Doge in action</p>
-            </div>
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
+        <h2 class="section-title">Featured Video</h2>
+        <div class="video-wrapper">
+            <div class="video-header">Quantum Doge in Action</div>
             <div class="video-container">
                 <video controls playsinline class="featured-video">
                     <source src="No_new_swaps.mp4" type="video/mp4">
@@ -131,13 +202,18 @@
 
     <!-- Comic Section -->
     <section id="comic" class="comic-section">
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
         <div class="container">
-            <div class="section-header">
-                <h2>📖 The Quantum Doge Comic</h2>
-                <p>Follow the adventure! New pages coming soon...</p>
-            </div>
+            <h2 class="section-title">The Quantum Doge Comic</h2>
             
-            <!-- Comic Reader -->
+            <!-- Comic Reader - PRESERVED -->
             <div class="comic-reader">
                 <div class="comic-display">
                     <button class="nav-arrow nav-prev" onclick="prevPage()" id="prevBtn">
@@ -186,61 +262,40 @@
             </div>
             
             <div class="comic-info">
-                <p>🎨 More pages coming soon! Stay tuned for new adventures.</p>
+                <p>More pages coming soon! Stay tuned for new adventures.</p>
             </div>
         </div>
     </section>
 
     <!-- Join Section -->
     <section id="join" class="join-section">
-        <div class="container">
-            <div class="join-content">
-                <h2>Join the Quantum Pack 🐕</h2>
-                <p>Be part of our playful experiment. Share ideas, explore math, and have fun!</p>
-                
-                <div class="social-links">
-                    <a href="https://x.com/Lujuuslaskentak" target="_blank" class="social-card" style="background: linear-gradient(135deg, #000 0%, #333 100%);">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                        </svg>
-                        <span>X (Twitter)</span>
-                        <small>@Lujuuslaskentak</small>
-                    </a>
-                    <a href="https://t.me/qdogesol" target="_blank" class="social-card telegram">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.093.034.306.019.472z"/>
-                        </svg>
-                        <span>Telegram</span>
-                        <small>t.me/qdogesol</small>
-                    </a>
-                    <a href="https://dexscreener.com/solana/e2aqyizkyftvrvr4g8vmmbpfd86pigicwwarkujdpump" target="_blank" class="social-card" style="background: linear-gradient(135deg, #1C1C28 0%, #2D2D3A 100%);">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <circle cx="12" cy="12" r="3" fill="currentColor"/>
-                        </svg>
-                        <span>DexScreener</span>
-                        <small>Live Chart</small>
-                    </a>
-                </div>
-                
-                <div class="token-info">
-                    <h3>Token Information</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Network</span>
-                            <span class="info-value">Solana</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Symbol</span>
-                            <span class="info-value">LAIKA</span>
-                        </div>
-                    </div>
-                    <div class="contract-display">
-                        <span class="contract-label">Contract:</span>
-                        <code>E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump</code>
-                    </div>
-                </div>
+        <!-- Scrolling Background -->
+        <div class="scrolling-bg">
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+            <div class="scroll-row"><span>QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; QUANTUM DOGE &nbsp;•&nbsp; NATURE'S MATH &nbsp;•&nbsp; </span></div>
+        </div>
+
+        <h2 class="section-title">Join the Pack</h2>
+        
+        <div class="join-card">
+            <div class="join-left">
+                <h3 class="join-title">QUANTUM<br>COMMUNITY</h3>
+                <span class="join-badge">SOLANA TOKEN</span>
+            </div>
+            <div class="join-right">
+                <p class="join-text">BE PART OF OUR PLAYFUL EXPERIMENT.</p>
+                <p class="join-subtext">Share ideas, explore math, and have fun discovering nature's patterns with fellow curious minds.</p>
+                <a href="https://t.me/qdogesol" target="_blank" class="btn btn-primary">JOIN TELEGRAM</a>
+            </div>
+        </div>
+
+        <div class="contract-section">
+            <div class="contract-label">Contract Address</div>
+            <div class="contract-display">
+                <code class="contract-code" id="contractAddress">E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump</code>
+                <button class="copy-btn" onclick="copyAddress()">COPY</button>
             </div>
         </div>
     </section>
@@ -248,21 +303,20 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <img src="qdoge_new.png" alt="Quantum Doge">
-                    <span>Quantum Doge</span>
-                </div>
-                <p class="footer-tagline">Discovering nature's math, one dog at a time 🐕✨</p>
-                <div class="footer-links">
-                    <a href="https://x.com/Lujuuslaskentak" target="_blank">X</a>
-                    <a href="https://t.me/qdogesol" target="_blank">Telegram</a>
-                </div>
-                <p class="disclaimer">
-                    This is a fun community experiment. Cryptocurrency investments carry risk. Do your own research.
-                </p>
-                <p class="copyright">© 2026 Quantum Doge. All skill levels welcome!</p>
+            <div class="footer-logo">
+                <img src="qdoge_new.png" alt="Quantum Doge">
+                <span>Quantum Doge</span>
             </div>
+            <p class="footer-tagline">NATURE'S MATH</p>
+            <div class="footer-links">
+                <a href="https://x.com/Lujuuslaskentak" target="_blank">X</a>
+                <a href="https://t.me/qdogesol" target="_blank">Telegram</a>
+                <a href="https://dexscreener.com/solana/e2aqyizkyftvrvr4g8vmmbpfd86pigicwwarkujdpump" target="_blank">Chart</a>
+            </div>
+            <p class="disclaimer">
+                This is a fun community experiment. Cryptocurrency investments carry risk. Do your own research.
+            </p>
+            <p class="copyright">© 2026 Quantum Doge</p>
         </div>
     </footer>
 
