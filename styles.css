@@ -610,9 +610,10 @@ section {
     max-height: 85vh;
     object-fit: contain;
     transition: opacity 0.3s, transform 0.3s;
+    transform-origin: center center;
 }
 
-.comic-page:hover {
+.comic-page-container:not(.zoom-1):not(.zoom-2) .comic-page:hover {
     transform: scale(1.01);
 }
 
@@ -763,21 +764,23 @@ section {
 
 /* Zoom Levels */
 .comic-page-container.zoom-1 .comic-page {
-    width: 120%;
+    transform: scale(1.5);
     max-width: none;
-    transform: none;
+    max-height: none;
 }
 
 .comic-page-container.zoom-2 .comic-page {
-    width: 150%;
+    transform: scale(2);
     max-width: none;
-    transform: none;
+    max-height: none;
 }
 
 .comic-page-container.zoom-1,
 .comic-page-container.zoom-2 {
     overflow: auto;
     cursor: grab;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 .comic-page-container.zoom-1:active,
