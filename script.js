@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Comic Reader Configuration
-    const totalPages = 15;
+    const totalPages = 14;
     let currentPage = 1;
     
     const comicPage = document.getElementById('comicPage');
