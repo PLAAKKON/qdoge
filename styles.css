@@ -821,7 +821,7 @@ section {
 .comic-page-container.zoom-2 {
     overflow: auto;
     cursor: grab;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: flex-start;
 }
 
@@ -836,6 +836,7 @@ section {
     height: auto;
     object-fit: contain;
     cursor: grab;
+    margin: 0 auto;
 }
 
 .comic-page-container.zoom-2 .comic-page:hover {
@@ -973,6 +974,8 @@ body.comic-fullscreen .header {
 .comic-reader.fullscreen .comic-page-container.zoom-2 {
     overflow: auto;
     height: 100vh;
+    display: flex;
+    justify-content: center;
 }
 
 .comic-reader.fullscreen .comic-page-container.zoom-2 .comic-page {
@@ -980,6 +983,7 @@ body.comic-fullscreen .header {
     max-width: none;
     width: 100vw;
     height: auto;
+    margin: 0 auto;
 }
 
 body.comic-fullscreen {
