@@ -795,7 +795,7 @@ section {
     overflow: auto;
     cursor: grab;
     justify-content: center;
-    align-items: flex-start;
+    align-items: safe center;
 }
 
 .comic-page-container.zoom-1:active {
@@ -822,7 +822,7 @@ section {
     overflow: auto;
     cursor: grab;
     justify-content: center;
-    align-items: flex-start;
+    align-items: safe center;
 }
 
 .comic-page-container.zoom-2:active {
@@ -960,6 +960,7 @@ body.comic-fullscreen .header {
     height: 100vh;
     display: flex;
     justify-content: center;
+    align-items: safe center;
 }
 
 .comic-reader.fullscreen .comic-page-container.zoom-1 .comic-page {
@@ -976,6 +977,7 @@ body.comic-fullscreen .header {
     height: 100vh;
     display: flex;
     justify-content: center;
+    align-items: safe center;
 }
 
 .comic-reader.fullscreen .comic-page-container.zoom-2 .comic-page {
