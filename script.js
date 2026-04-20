@@ -290,6 +290,37 @@ document.addEventListener('DOMContentLoaded', function() {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, { passive: true });
+        
+        // Prevent page scroll when scrolling inside comic container (when zoomed)
+        comicContainer.addEventListener('wheel', function(e) {
+            // Check if container is scrollable (zoomed)
+            const isZoomed = comicContainer.classList.contains('zoom-1') || comicContainer.classList.contains('zoom-2');
+            
+            if (isZoomed) {
+                const canScrollVertical = comicContainer.scrollHeight > comicContainer.clientHeight;
+                const canScrollHorizontal = comicContainer.scrollWidth > comicContainer.clientWidth;
+                
+                if (canScrollVertical || canScrollHorizontal) {
+                    // Check if we're at scroll boundaries
+                    const atTop = comicContainer.scrollTop <= 0;
+                    const atBottom = comicContainer.scrollTop + comicContainer.clientHeight >= comicContainer.scrollHeight - 1;
+                    const atLeft = comicContainer.scrollLeft <= 0;
+                    const atRight = comicContainer.scrollLeft + comicContainer.clientWidth >= comicContainer.scrollWidth - 1;
+                    
+                    const scrollingUp = e.deltaY < 0;
+                    const scrollingDown = e.deltaY > 0;
+                    
+                    // Prevent page scroll unless at boundary and trying to scroll past it
+                    const allowPageScroll = 
+                        (atTop && scrollingUp && canScrollVertical) || 
+                        (atBottom && scrollingDown && canScrollVertical);
+                    
+                    if (!allowPageScroll) {
+                        e.preventDefault();
+                    }
+                }
+            }
+        }, { passive: false });
     }
     
     function handleSwipe() {
