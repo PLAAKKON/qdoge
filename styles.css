@@ -533,7 +533,7 @@ section {
     margin-top: 60px;
 }
 
-/* Comic Reader Styles - PRESERVED FROM ORIGINAL */
+/* Comic Reader Styles - ORIGINAL */
 .comic-reader {
     background: linear-gradient(145deg, #1e1b4b 0%, #0f0d24 100%);
     border-radius: 24px;
@@ -610,10 +610,9 @@ section {
     max-height: 85vh;
     object-fit: contain;
     transition: opacity 0.3s, transform 0.3s;
-    transform-origin: center center;
 }
 
-.comic-page-container:not(.zoom-1):not(.zoom-2) .comic-page:hover {
+.comic-page:hover {
     transform: scale(1.01);
 }
 
@@ -679,8 +678,7 @@ section {
     background: white;
 }
 
-.fullscreen-btn,
-.zoom-btn {
+.fullscreen-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
     color: white;
@@ -694,12 +692,12 @@ section {
     transition: all 0.3s;
 }
 
-.fullscreen-btn:hover,
-.zoom-btn:hover {
+.fullscreen-btn:hover {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
 }
 
+/* Thumbnail Strip */
 .thumbnail-strip {
     display: flex;
     gap: 10px;
@@ -762,131 +760,226 @@ section {
     font-size: 1.1rem;
 }
 
-/* Zoom Levels */
-.comic-page-container.zoom-1 .comic-page {
-    transform: scale(1.5);
-    max-width: none;
-    max-height: none;
+/* Zoom button */
+.zoom-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-.comic-page-container.zoom-2 .comic-page {
-    transform: scale(2);
-    max-width: none;
-    max-height: none;
-}
-
-.comic-page-container.zoom-1,
-.comic-page-container.zoom-2 {
-    overflow: auto;
-    cursor: grab;
-    align-items: flex-start;
-    justify-content: flex-start;
-}
-
-.comic-page-container.zoom-1:active,
-.comic-page-container.zoom-2:active {
-    cursor: grabbing;
-}
-
-.zoom-btn.active {
+.zoom-btn:hover {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
 }
 
-.zoom-btn.active-2 {
+.zoom-btn.active {
     background: var(--accent-green, #22c55e);
     border-color: var(--accent-green, #22c55e);
 }
 
-/* Fullscreen Mode */
+.zoom-btn.active-2 {
+    background: var(--accent-purple, #a855f7);
+    border-color: var(--accent-purple, #a855f7);
+}
+
+/* Zoom level 1 - Medium (halfway between fit and full width) */
+.comic-page-container.zoom-1 {
+    overflow: auto;
+    cursor: grab;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.comic-page-container.zoom-1:active {
+    cursor: grabbing;
+}
+
+.comic-page-container.zoom-1 .comic-page {
+    max-height: none;
+    max-width: none;
+    width: 75%;
+    min-width: 75%;
+    height: auto;
+    object-fit: contain;
+    cursor: grab;
+    margin: 0 auto;
+}
+
+.comic-page-container.zoom-1 .comic-page:hover {
+    transform: none;
+}
+
+/* Zoom level 2 - Full width */
+.comic-page-container.zoom-2 {
+    overflow: auto;
+    cursor: grab;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.comic-page-container.zoom-2:active {
+    cursor: grabbing;
+}
+
+.comic-page-container.zoom-2 .comic-page {
+    max-height: none;
+    max-width: none;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    cursor: grab;
+}
+
+.comic-page-container.zoom-2 .comic-page:hover {
+    transform: none;
+}
+
+/* Fullscreen mode */
 .comic-reader.fullscreen {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    margin: 0;
+    z-index: 1000;
     border-radius: 0;
-    z-index: 9999;
-    padding: 0;
+    max-width: none;
+    padding: 16px;
     display: flex;
     flex-direction: column;
+    background: #000;
+}
+
+/* Hide header when fullscreen */
+body.comic-fullscreen .header {
+    display: none !important;
 }
 
 .comic-reader.fullscreen .comic-display {
     flex: 1;
-    margin-bottom: 0;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
 
 .comic-reader.fullscreen .comic-page-container {
-    flex: 1;
+    min-height: auto;
     max-height: none;
-    min-height: 0;
-    border-radius: 0;
+    height: 100vh;
+    width: 100%;
+    background: transparent;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: safe center;
 }
 
 .comic-reader.fullscreen .comic-page {
-    max-height: calc(100vh - 200px);
+    max-height: none;
+    max-width: none;
+    width: 45vw;
+    height: auto;
 }
 
+/* Hide nav arrows by default in fullscreen */
 .comic-reader.fullscreen .nav-arrow {
     opacity: 0;
     width: 80px;
     height: 80px;
+    pointer-events: none;
     transition: opacity 0.3s;
 }
 
-.comic-reader.fullscreen .nav-arrow.visible {
-    opacity: 1;
-}
-
+/* Nav arrow positions */
 .comic-reader.fullscreen .nav-prev {
-    left: 32px;
+    left: 20px;
 }
 
 .comic-reader.fullscreen .nav-next {
-    right: 32px;
+    right: 20px;
 }
 
-.comic-reader.fullscreen .comic-controls {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 16px 24px;
-    border-radius: 16px;
-    z-index: 10;
-}
-
-.comic-reader.fullscreen .comic-controls.visible {
+/* Show nav arrows when .visible class is added by JS */
+.comic-reader.fullscreen .nav-arrow.visible {
     opacity: 1;
+    pointer-events: auto;
 }
 
+/* Hide controls by default */
+.comic-reader.fullscreen .comic-controls,
 .comic-reader.fullscreen .thumbnail-strip {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     opacity: 0;
-    transition: opacity 0.3s;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(10px);
-    border-radius: 0;
-    padding: 16px 24px;
-    z-index: 10;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    z-index: 1002;
+    pointer-events: none;
 }
 
+.comic-reader.fullscreen .comic-controls {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 16px 24px;
+    margin: 0;
+    border-radius: 0;
+}
+
+.comic-reader.fullscreen .thumbnail-strip {
+    bottom: 70px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    max-height: 90px;
+    border-radius: 0;
+    padding: 8px 16px;
+}
+
+/* Show controls when .visible class is added by JS */
+.comic-reader.fullscreen .comic-controls.visible,
 .comic-reader.fullscreen .thumbnail-strip.visible {
     opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Zoom level 1 in fullscreen - Medium */
+.comic-reader.fullscreen .comic-page-container.zoom-1 {
+    overflow: auto;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.comic-reader.fullscreen .comic-page-container.zoom-1 .comic-page {
+    max-height: none;
+    max-width: none;
+    width: 75vw;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* Zoom level 2 in fullscreen - Full width */
+.comic-reader.fullscreen .comic-page-container.zoom-2 {
+    overflow: auto;
+    height: 100vh;
+}
+
+.comic-reader.fullscreen .comic-page-container.zoom-2 .comic-page {
+    max-height: none;
+    max-width: none;
+    width: 100vw;
+    height: auto;
 }
 
 body.comic-fullscreen {
