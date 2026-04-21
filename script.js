@@ -40,6 +40,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Zoom state - 0: normal, 1: medium, 2: full width
     let zoomLevel = 0;
+
+    // On mobile, default to zoom level 1 (medium)
+    if (window.matchMedia('(hover: none)').matches) {
+        zoomLevel = 1;
+        const container = document.querySelector('.comic-page-container');
+        const zoomBtn = document.querySelector('.zoom-btn');
+        if (container) container.classList.add('zoom-1');
+        if (zoomBtn) zoomBtn.classList.add('active');
+    }
     
     // Go to specific page
     window.goToPage = function(pageNum) {
@@ -95,19 +104,28 @@ document.addEventListener('DOMContentLoaded', function() {
         updateNavButtons();
     };
     
-    // Mobile nav arrow auto-hide
+    // Mobile overlay auto-hide (arrows + controls + thumbnail strip)
     let navHideTimer = null;
-    function showNavArrowsMobile() {
-        if (window.matchMedia('(hover: none)').matches) {
-            if (prevBtn) prevBtn.classList.add('mobile-visible');
-            if (nextBtn) nextBtn.classList.add('mobile-visible');
-            clearTimeout(navHideTimer);
-            navHideTimer = setTimeout(function() {
-                if (prevBtn) prevBtn.classList.remove('mobile-visible');
-                if (nextBtn) nextBtn.classList.remove('mobile-visible');
-            }, 2000);
-        }
+    const comicControls = document.querySelector('.comic-controls');
+    const comicThumbStrip = document.querySelector('.thumbnail-strip');
+
+    function showOverlaysMobile() {
+        if (!window.matchMedia('(hover: none)').matches) return;
+        if (prevBtn) prevBtn.classList.add('mobile-visible');
+        if (nextBtn) nextBtn.classList.add('mobile-visible');
+        if (comicControls) comicControls.classList.add('mobile-visible');
+        if (comicThumbStrip) comicThumbStrip.classList.add('mobile-visible');
+        clearTimeout(navHideTimer);
+        navHideTimer = setTimeout(function() {
+            if (prevBtn) prevBtn.classList.remove('mobile-visible');
+            if (nextBtn) nextBtn.classList.remove('mobile-visible');
+            if (comicControls) comicControls.classList.remove('mobile-visible');
+            if (comicThumbStrip) comicThumbStrip.classList.remove('mobile-visible');
+        }, 2000);
     }
+
+    // Alias for backwards compat
+    function showNavArrowsMobile() { showOverlaysMobile(); }
 
     // Navigation functions
     window.prevPage = function() {
