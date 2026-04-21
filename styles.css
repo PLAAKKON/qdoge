@@ -1258,8 +1258,12 @@ body.comic-fullscreen {
         justify-content: center;
     }
     
-    .hero-header {
-        padding: 9px 0;
+    .header {
+        padding: 5px 0;
+    }
+
+    .hero {
+        padding-top: 66px;
     }
 
     .hero-stats {
