@@ -95,17 +95,33 @@ document.addEventListener('DOMContentLoaded', function() {
         updateNavButtons();
     };
     
+    // Mobile nav arrow auto-hide
+    let navHideTimer = null;
+    function showNavArrowsMobile() {
+        if (window.matchMedia('(hover: none)').matches) {
+            if (prevBtn) prevBtn.classList.add('mobile-visible');
+            if (nextBtn) nextBtn.classList.add('mobile-visible');
+            clearTimeout(navHideTimer);
+            navHideTimer = setTimeout(function() {
+                if (prevBtn) prevBtn.classList.remove('mobile-visible');
+                if (nextBtn) nextBtn.classList.remove('mobile-visible');
+            }, 2000);
+        }
+    }
+
     // Navigation functions
     window.prevPage = function() {
         if (currentPage > 1) {
             goToPage(currentPage - 1);
         }
+        showNavArrowsMobile();
     };
     
     window.nextPage = function() {
         if (currentPage < totalPages) {
             goToPage(currentPage + 1);
         }
+        showNavArrowsMobile();
     };
     
     // Zoom toggle - cycles through 3 levels
