@@ -1262,10 +1262,6 @@ body.comic-fullscreen {
         padding: 5px 0;
     }
 
-    .hero {
-        padding-top: 66px;
-    }
-
     .hero-stats {
         flex-direction: row;
         gap: 12px;
