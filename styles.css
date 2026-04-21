@@ -1259,8 +1259,21 @@ body.comic-fullscreen {
     }
     
     .hero-stats {
-        flex-direction: column;
-        gap: 16px;
+        flex-direction: row;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .stat-value {
+        font-size: clamp(0.95rem, 3.5vw, 1.4rem);
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+    }
+
+    .stat-divider {
+        height: 32px;
     }
     
     .features-grid {
