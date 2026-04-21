@@ -577,6 +577,7 @@ section {
 
 .nav-arrow.mobile-visible {
     opacity: 1;
+    touch-action: manipulation;
 }
 
 .nav-prev { left: 16px; }
@@ -873,6 +874,7 @@ body.comic-fullscreen .header {
 .comic-reader.fullscreen .comic-display {
     flex: 1;
     display: flex;
+    touch-action: manipulation;
     align-items: center;
     justify-content: center;
     position: relative;
