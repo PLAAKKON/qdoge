@@ -1257,6 +1257,13 @@ body.comic-fullscreen {
     
     .social-buttons {
         justify-content: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    .header .btn-social {
+        width: 36px;
+        height: 36px;
     }
     
     .header {
