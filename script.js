@@ -237,8 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('mouseleave', handleFullscreenMouseLeave);
     
     // Add mouseleave to controls themselves
-    const comicControls = document.querySelector('.comic-controls');
-    const thumbnailStripEl = document.querySelector('.thumbnail-strip');
+    const thumbnailStripEl = comicThumbStrip;
     
     if (comicControls) {
         comicControls.addEventListener('mouseleave', function(e) {
