@@ -342,6 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize navigation state
     updateNavButtons();
+
+    // Show arrows on load then auto-hide
+    showOverlaysMobile();
     
     // Copy contract address function
     window.copyAddress = function() {
