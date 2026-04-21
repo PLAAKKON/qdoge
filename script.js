@@ -271,10 +271,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (reader) {
             reader.classList.toggle('fullscreen');
             document.body.classList.toggle('comic-fullscreen');
-            
+
             if (reader.classList.contains('fullscreen')) {
                 document.body.style.overflow = 'hidden';
+                // Show overlays briefly when entering fullscreen on mobile
+                showOverlaysMobile();
+                // Touch anywhere in fullscreen shows overlays
+                reader.addEventListener('touchstart', showOverlaysMobile, { passive: true });
             } else {
+                reader.removeEventListener('touchstart', showOverlaysMobile);
                 document.body.style.overflow = '';
                 // Reset zoom when exiting fullscreen
                 if (zoomLevel > 0) {

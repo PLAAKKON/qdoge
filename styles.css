@@ -917,8 +917,9 @@ body.comic-fullscreen .header {
     right: 20px;
 }
 
-/* Show nav arrows when .visible class is added by JS */
-.comic-reader.fullscreen .nav-arrow.visible {
+/* Show nav arrows when .visible or .mobile-visible class is added by JS */
+.comic-reader.fullscreen .nav-arrow.visible,
+.comic-reader.fullscreen .nav-arrow.mobile-visible {
     opacity: 1;
     pointer-events: auto;
 }
@@ -954,9 +955,11 @@ body.comic-fullscreen .header {
     padding: 8px 16px;
 }
 
-/* Show controls when .visible class is added by JS */
+/* Show controls when .visible or .mobile-visible class is added by JS */
 .comic-reader.fullscreen .comic-controls.visible,
-.comic-reader.fullscreen .thumbnail-strip.visible {
+.comic-reader.fullscreen .thumbnail-strip.visible,
+.comic-reader.fullscreen .comic-controls.mobile-visible,
+.comic-reader.fullscreen .thumbnail-strip.mobile-visible {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
