@@ -300,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (comicContainer) {
         comicContainer.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
+            showNavArrowsMobile();
         }, { passive: true });
         
         comicContainer.addEventListener('touchend', function(e) {
