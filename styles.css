@@ -569,7 +569,13 @@ section {
     opacity: 0;
 }
 
-.comic-display:hover .nav-arrow {
+@media (hover: hover) {
+    .comic-display:hover .nav-arrow {
+        opacity: 1;
+    }
+}
+
+.nav-arrow.mobile-visible {
     opacity: 1;
 }
 
