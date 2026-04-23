@@ -1,6 +1,117 @@
 // Quantum Doge - Interactive Script
 
 document.addEventListener('DOMContentLoaded', function() {
+    const root = document.body;
+    const header = document.querySelector('.header');
+    const livePriceEl = document.getElementById('livePrice');
+    const liveChangeEl = document.getElementById('liveChange');
+    const tokenAddress = root?.dataset.dexTokenAddress;
+
+    function syncViewportMetrics() {
+        if (header) {
+            document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
+        }
+
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    }
+
+    function formatUsd(value) {
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue) || numericValue <= 0) {
+            return '--';
+        }
+
+        if (numericValue >= 1) {
+            return `$${numericValue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4
+            })}`;
+        }
+
+        if (numericValue >= 0.01) {
+            return `$${numericValue.toFixed(4)}`;
+        }
+
+        if (numericValue >= 0.0001) {
+            return `$${numericValue.toFixed(6)}`;
+        }
+
+        return `$${numericValue.toFixed(8)}`;
+    }
+
+    function updateChangeDisplay(changeValue) {
+        if (!liveChangeEl) {
+            return;
+        }
+
+        const numericValue = Number(changeValue);
+        if (!Number.isFinite(numericValue)) {
+            liveChangeEl.textContent = '--';
+            liveChangeEl.classList.remove('stat-positive', 'stat-negative');
+            return;
+        }
+
+        liveChangeEl.textContent = `${numericValue >= 0 ? '+' : ''}${numericValue.toFixed(2)}%`;
+        liveChangeEl.classList.toggle('stat-positive', numericValue >= 0);
+        liveChangeEl.classList.toggle('stat-negative', numericValue < 0);
+    }
+
+    async function fetchDexPairs() {
+        if (!tokenAddress) {
+            return [];
+        }
+
+        const urls = [
+            `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
+            `https://api.dexscreener.com/latest/dex/search/?q=${tokenAddress}`
+        ];
+
+        for (const url of urls) {
+            try {
+                const response = await fetch(url, { cache: 'no-store' });
+                if (!response.ok) {
+                    continue;
+                }
+
+                const data = await response.json();
+                if (Array.isArray(data?.pairs) && data.pairs.length > 0) {
+                    return data.pairs;
+                }
+            } catch (error) {
+                console.warn('DexScreener fetch failed for', url, error);
+            }
+        }
+
+        return [];
+    }
+
+    async function refreshMarketStats() {
+        if (!livePriceEl) {
+            return;
+        }
+
+        const pairs = await fetchDexPairs();
+        const selectedPair = pairs
+            .filter((pair) => pair?.chainId === 'solana')
+            .sort((left, right) => Number(right?.liquidity?.usd || 0) - Number(left?.liquidity?.usd || 0))[0];
+
+        if (!selectedPair) {
+            livePriceEl.textContent = 'Unavailable';
+            updateChangeDisplay(null);
+            return;
+        }
+
+        livePriceEl.textContent = formatUsd(selectedPair.priceUsd);
+        updateChangeDisplay(selectedPair?.priceChange?.h24);
+    }
+
+    syncViewportMetrics();
+    window.addEventListener('resize', syncViewportMetrics);
+    window.addEventListener('orientationchange', syncViewportMetrics);
+    refreshMarketStats();
+    window.setInterval(refreshMarketStats, 30000);
+
     // Comic Reader Configuration
     const totalPages = 14;
     let currentPage = 1;
@@ -274,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (reader.classList.contains('fullscreen')) {
                 document.body.style.overflow = 'hidden';
+                syncViewportMetrics();
                 // Show overlays briefly when entering fullscreen on mobile
                 showOverlaysMobile();
                 // Touch anywhere in fullscreen shows overlays
@@ -281,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 reader.removeEventListener('touchstart', showOverlaysMobile);
                 document.body.style.overflow = '';
+                syncViewportMetrics();
                 // Reset zoom when exiting fullscreen
                 if (zoomLevel > 0) {
                     const container = document.querySelector('.comic-page-container');
@@ -428,11 +541,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressBar = document.createElement('div');
     progressBar.style.cssText = `
         position: fixed;
-        top: 0;
+        top: var(--header-height);
         left: 0;
         height: 3px;
         background: linear-gradient(90deg, #6366f1, #ec4899);
-        z-index: 1000;
+        z-index: 90;
         transition: width 0.1s;
         width: 0%;
     `;

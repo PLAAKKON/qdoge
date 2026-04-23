@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="qdoge_new.png">
 </head>
-<body>
+<body data-dex-token-address="E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump">
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -61,15 +61,15 @@
             <div class="container">
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <div class="stat-label">Market Cap</div>
+                        <div class="stat-label">Price</div>
                         <div class="stat-value">
-                            <a href="https://dexscreener.com/solana/E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump" target="_blank" rel="noopener noreferrer">$2.1K</a>
+                            <a href="https://dexscreener.com/solana/E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump" target="_blank" rel="noopener noreferrer" id="livePrice">Loading...</a>
                         </div>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
                         <div class="stat-label">24H Change</div>
-                        <div class="stat-value stat-positive">+0.25%</div>
+                        <div class="stat-value" id="liveChange">--</div>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
