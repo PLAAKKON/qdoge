@@ -57,33 +57,13 @@ document.addEventListener('DOMContentLoaded', function() {
         liveChangeEl.classList.toggle('stat-negative', numericValue < 0);
     }
 
-    async function fetchDexPairs() {
-        if (!tokenAddress) {
-            return [];
+    async function fetchMarketStats() {
+        const response = await fetch('/api/market-stats', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`Market stats request failed with ${response.status}`);
         }
 
-        const urls = [
-            `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
-            `https://api.dexscreener.com/latest/dex/search/?q=${tokenAddress}`
-        ];
-
-        for (const url of urls) {
-            try {
-                const response = await fetch(url, { cache: 'no-store' });
-                if (!response.ok) {
-                    continue;
-                }
-
-                const data = await response.json();
-                if (Array.isArray(data?.pairs) && data.pairs.length > 0) {
-                    return data.pairs;
-                }
-            } catch (error) {
-                console.warn('DexScreener fetch failed for', url, error);
-            }
-        }
-
-        return [];
+        return response.json();
     }
 
     async function refreshMarketStats() {
@@ -91,19 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const pairs = await fetchDexPairs();
-        const selectedPair = pairs
-            .filter((pair) => pair?.chainId === 'solana')
-            .sort((left, right) => Number(right?.liquidity?.usd || 0) - Number(left?.liquidity?.usd || 0))[0];
-
-        if (!selectedPair) {
+        try {
+            const marketStats = await fetchMarketStats();
+            livePriceEl.textContent = formatUsd(marketStats.priceUsd);
+            updateChangeDisplay(marketStats.priceChangeH24);
+        } catch (error) {
+            console.warn('Market stats refresh failed', error);
             livePriceEl.textContent = 'Unavailable';
             updateChangeDisplay(null);
-            return;
         }
-
-        livePriceEl.textContent = formatUsd(selectedPair.priceUsd);
-        updateChangeDisplay(selectedPair?.priceChange?.h24);
     }
 
     syncViewportMetrics();
