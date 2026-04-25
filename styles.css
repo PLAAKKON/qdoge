@@ -1357,6 +1357,27 @@ body.comic-fullscreen {
     .features-grid {
         grid-template-columns: 1fr;
     }
+
+    .minigames-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .minigame-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .minigame-thumbnail {
+        height: 200px;
+    }
+
+    .minigame-info {
+        padding: 20px;
+    }
+
+    .minigame-title {
+        font-size: 1.2rem;
+    }
 }
 
 /* Fullscreen mode for comic */
