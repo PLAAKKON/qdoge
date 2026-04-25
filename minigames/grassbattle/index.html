@@ -29,6 +29,7 @@
     <section class="stage-wrap">
       <canvas id="grassCanvas" aria-label="Grass growth simulation"></canvas>
       <div id="overlayMessage" class="overlay-message" hidden></div>
+      <button id="fullscreenBtn" class="btn-fs-float" aria-label="Toggle fullscreen" title="Full screen">⛶</button>
     </section>
 
     <section class="controls" aria-label="Game controls">
@@ -38,14 +39,16 @@
       </div>
 
       <div class="actions">
-        <button id="resetBtn" class="btn btn-secondary">Reset</button>
         <button id="decorateBtn" class="btn btn-secondary" disabled>Decorate</button>
       </div>
 
       <div class="hall-panel" aria-label="Hall of Fame">
         <div class="hall-header">
           <p class="control-title">Hall of Fame Top 3</p>
-          <button id="clearHallBtn" class="btn btn-secondary hall-clear-btn" type="button">Clear</button>
+          <div class="hall-actions">
+            <button id="resetBtn" class="btn btn-secondary hall-clear-btn" type="button">Reset</button>
+            <button id="clearHallBtn" class="btn btn-secondary hall-clear-btn" type="button">Clear</button>
+          </div>
         </div>
         <ol id="hallOfFameList" class="hall-list"></ol>
       </div>

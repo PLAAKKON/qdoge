@@ -138,6 +138,7 @@ body.start-mode .stage-wrap {
   display: grid;
   place-items: center;
   text-align: center;
+  white-space: pre-line;
   padding: 14px;
   font-family: "Fraunces", Georgia, serif;
   font-size: clamp(1.1rem, 4vw, 1.6rem);
@@ -287,7 +288,7 @@ body.start-mode .stage-wrap {
 
 .actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
@@ -311,6 +312,11 @@ body.start-mode .stage-wrap {
 
 .hall-header .control-title {
   margin: 0;
+}
+
+.hall-actions {
+  display: flex;
+  gap: 6px;
 }
 
 .hall-clear-btn {
@@ -445,6 +451,100 @@ body.start-mode .stage-wrap {
   background:
     radial-gradient(120% 85% at 50% 0%, rgba(255, 244, 174, 0.5), transparent 58%),
     linear-gradient(180deg, #ffd45d 0%, #edb52d 58%, #d38d20 100%);
+}
+
+/* Floating fullscreen toggle button */
+.btn-fs-float {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 50;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(240, 252, 230, 0.3);
+  border-radius: 9px;
+  background: rgba(22, 42, 22, 0.52);
+  backdrop-filter: blur(4px);
+  color: rgba(235, 252, 220, 0.92);
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background 120ms, transform 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-fs-float:hover {
+  background: rgba(22, 42, 22, 0.8);
+  transform: scale(1.1);
+}
+
+.btn-fs-float:active {
+  transform: scale(0.95);
+}
+
+/* Fullscreen game mode */
+body.fullscreen-mode .app {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: unset;
+  padding: 0;
+  display: block;
+  z-index: 100;
+}
+
+body.fullscreen-mode .stage-wrap {
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+body.fullscreen-mode .hud {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: min(440px, 90vw);
+  border-radius: 20px;
+  padding: 8px;
+  z-index: 200;
+}
+
+body.fullscreen-mode .controls {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  left: 8px;
+  right: 8px;
+  max-width: min(560px, 100%);
+  margin: 0 auto;
+  z-index: 200;
+}
+
+/* In fullscreen, only show sun-control (and decorate-panel when active) */
+body.fullscreen-mode .hall-panel,
+body.fullscreen-mode .actions {
+  display: none;
+}
+
+body.fullscreen-mode .sun-pad {
+  height: 68px;
+}
+
+/* Floating fullscreen btn becomes fixed exit in fullscreen mode */
+body.fullscreen-mode .btn-fs-float {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  right: 8px;
+  z-index: 300;
+  background: rgba(22, 42, 22, 0.7);
 }
 
 @media (min-width: 720px) {

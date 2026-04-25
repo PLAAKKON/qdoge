@@ -29,6 +29,7 @@ const HUD_MAX_AGE_SECONDS = 10;
 const VIEW_ANGLE_DEG = 60;
 const CROWN_BONUS_POINTS = 1000;
 const HALL_OF_FAME_KEY = "grassbattle.hallOfFame.v1";
+let hallOfFameMemoryCache = [];
 
 const state = {
   heights: new Float32Array(CELL_COUNT),
@@ -103,33 +104,47 @@ const screenshotBtn = document.getElementById("screenshotBtn");
 const shareBtn = document.getElementById("shareBtn");
 const hallOfFameListEl = document.getElementById("hallOfFameList");
 const clearHallBtn = document.getElementById("clearHallBtn");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function setStartMode(active) {
   document.body.classList.toggle("start-mode", active);
+}
+
+function normalizeHallOfFame(scores) {
+  if (!Array.isArray(scores)) {
+    return [];
+  }
+  return scores
+    .filter((n) => Number.isFinite(n) && n >= 0)
+    .map((n) => Math.floor(n))
+    .sort((a, b) => b - a)
+    .slice(0, 3);
 }
 
 function loadHallOfFame() {
   try {
     const raw = localStorage.getItem(HALL_OF_FAME_KEY);
     if (!raw) {
-      return [];
+      return [...hallOfFameMemoryCache];
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed
-      .filter((n) => Number.isFinite(n) && n >= 0)
-      .map((n) => Math.floor(n))
-      .sort((a, b) => b - a)
-      .slice(0, 3);
+    const normalized = normalizeHallOfFame(parsed);
+    hallOfFameMemoryCache = normalized;
+    return normalized;
   } catch {
-    return [];
+    return [...hallOfFameMemoryCache];
   }
 }
 
 function saveHallOfFame(scores) {
-  localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(scores.slice(0, 3)));
+  const normalized = normalizeHallOfFame(scores);
+  hallOfFameMemoryCache = normalized;
+  try {
+    localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(normalized));
+  } catch {
+    // localStorage can fail on some mobile/private browsing contexts.
+  }
+  return normalized;
 }
 
 function renderHallOfFame(scores = loadHallOfFame()) {
@@ -149,11 +164,14 @@ function recordHallOfFame(score) {
   if (!Number.isFinite(score) || score < 0) {
     return;
   }
-  const next = [...loadHallOfFame(), Math.floor(score)]
-    .sort((a, b) => b - a)
-    .slice(0, 3);
-  saveHallOfFame(next);
+  const next = saveHallOfFame([...loadHallOfFame(), Math.floor(score)]);
   renderHallOfFame(next);
+}
+
+function getHallOfFameSummary() {
+  const scores = loadHallOfFame();
+  const top3 = [scores[0] ?? 0, scores[1] ?? 0, scores[2] ?? 0];
+  return `Top 3: ${top3[0].toLocaleString()} cm • ${top3[1].toLocaleString()} cm • ${top3[2].toLocaleString()} cm`;
 }
 
 function idx(x, y) {
@@ -918,8 +936,10 @@ function drawMiniHud(w) {
 function drawGrassHeightHud() {
   const panelX = 12;
   const panelY = 12;
-  const panelW = 240;
-  const panelH = 96;
+  // Mobile responsive - reduce size and font on small screens
+  const isMobile = window.innerWidth < 560;
+  const panelW = isMobile ? 176 : 240;
+  const panelH = isMobile ? 72 : 96;
   const plotX = panelX + 10;
   const plotY = panelY + 24;
   const plotW = panelW - 20;
@@ -937,7 +957,7 @@ function drawGrassHeightHud() {
   ctx.stroke();
 
   ctx.fillStyle = "rgba(240, 252, 232, 0.96)";
-  ctx.font = "11px Manrope, sans-serif";
+  ctx.font = `${isMobile ? 9 : 11}px Manrope, sans-serif`;
   ctx.fillText("Grass Height", panelX + 10, panelY + 16);
 
   for (let r = 0; r < rows; r++) {
@@ -1353,7 +1373,8 @@ function showStartPage() {
   setStartMode(true);
   overlayMessage.classList.add("start-screen");
   updateHud();
-  setOverlay("GRASS BATTLE\nPress any key to start game.");
+  renderHallOfFame();
+  setOverlay(`GRASS BATTLE\nPress any key to start game.\n${getHallOfFameSummary()}`);
   draw();
 }
 
@@ -1470,7 +1491,8 @@ function reset() {
   setStartMode(true);
   overlayMessage.classList.add("start-screen");
   updateHud();
-  setOverlay("GRASS BATTLE\nPress any key to start game.");
+  renderHallOfFame();
+  setOverlay(`GRASS BATTLE\nPress any key to start game.\n${getHallOfFameSummary()}`);
   state.waitingForStartKey = true;
   draw();
 }
@@ -1580,6 +1602,36 @@ async function shareScreenshot() {
 }
 
 function bindControls() {
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  function updateFullscreenBtn() {
+    if (fullscreenBtn) {
+      fullscreenBtn.textContent = isFullscreen() ? "\u2715" : "\u26f6";
+      fullscreenBtn.title = isFullscreen() ? "Exit full screen" : "Full screen";
+    }
+  }
+
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener("click", () => {
+      if (isFullscreen()) {
+        (document.exitFullscreen || document.webkitExitFullscreen || (() => {})).call(document);
+      } else {
+        const el = document.documentElement;
+        (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el);
+      }
+    });
+  }
+
+  const onFullscreenChange = () => {
+    const fs = isFullscreen();
+    document.body.classList.toggle("fullscreen-mode", fs);
+    updateFullscreenBtn();
+    resizeCanvas();
+  };
+  document.addEventListener("fullscreenchange", onFullscreenChange);
+  document.addEventListener("webkitfullscreenchange", onFullscreenChange);
   const tryStartFromStartPage = () => {
     if (!state.waitingForStartKey) {
       return;
