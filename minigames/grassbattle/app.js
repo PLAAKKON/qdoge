@@ -1423,6 +1423,8 @@ function showStartPage() {
   setOverlay(`GRASS BATTLE\nv0.1 beta\nPress any key to start game.\n${getHallOfFameSummary()}`);
   draw();
 }
+
+function tick(timestamp) {
   if (!state.lastTimestamp) {
     state.lastTimestamp = timestamp;
   }
