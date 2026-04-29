@@ -33,34 +33,27 @@
     </section>
 
     <section class="controls" aria-label="Game controls">
+      <button id="menuToggleBtn" class="btn-menu-toggle" aria-label="Toggle controls">▾</button>
       <div class="sun-control">
-        <p id="sunControlTitle" class="control-title">Sun Direction</p>
         <div id="sunPad" class="sun-pad" role="application" aria-label="Touch and drag to move sun"></div>
       </div>
 
-      <div class="actions">
+      <div class="game-action-row">
+        <button id="resetBtn" class="btn btn-secondary" type="button">↺ Reset</button>
+        <button id="scoreBtn" class="btn btn-secondary" type="button">Score</button>
         <button id="decorateBtn" class="btn btn-secondary" disabled>Decorate</button>
+        <button id="hallBtn" class="btn btn-secondary" type="button">Top 3</button>
       </div>
 
-      <div class="hall-panel" aria-label="Hall of Fame">
+      <div id="hallPanel" class="hall-panel" hidden>
         <div class="hall-header">
           <p class="control-title">Hall of Fame Top 3</p>
-          <div class="hall-actions">
-            <button id="resetBtn" class="btn btn-secondary hall-clear-btn" type="button">Reset</button>
-            <button id="clearHallBtn" class="btn btn-secondary hall-clear-btn" type="button">Clear</button>
-          </div>
+          <button id="clearHallBtn" class="btn btn-secondary hall-clear-btn" type="button">Clear</button>
         </div>
         <ol id="hallOfFameList" class="hall-list"></ol>
       </div>
 
       <div id="decoratePanel" class="decorate-panel" hidden>
-        <p class="control-title">Decorate</p>
-        <p class="decorate-hint">Add decorations by clicking on the field.</p>
-        <div class="swatches" role="radiogroup" aria-label="Decoration type">
-          <button class="swatch active" data-type="flower" aria-pressed="true"><span class="swatch-icon">🌼</span></button>
-          <button class="swatch" data-type="butterfly" aria-pressed="false"><span class="swatch-icon">🦋</span></button>
-          <button class="swatch" data-type="ladybug" aria-pressed="false"><span class="swatch-icon">🐞</span></button>
-        </div>
         <div class="actions compact">
           <button id="screenshotBtn" class="btn btn-primary">Save Screenshot</button>
           <button id="shareBtn" class="btn btn-secondary">Share</button>
@@ -69,6 +62,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=20260425t"></script>
+  <script src="app.js?v=20260429a"></script>
 </body>
 </html>

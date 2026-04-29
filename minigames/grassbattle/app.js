@@ -84,6 +84,8 @@ const state = {
   scoreAnimActive: false,
   scoreAnimPhase: "idle",
   scoreAnimTimer: 0,
+  scoreCardVisible: true,
+  scoreCardHideTimer: 0,
   hallRecordedForRun: false,
   lastTimestamp: 0,
   overlayHideTimer: null,
@@ -96,6 +98,9 @@ const scoreEl = document.getElementById("score");
 const monthEl = document.getElementById("month");
 const overlayMessage = document.getElementById("overlayMessage");
 const resetBtn = document.getElementById("resetBtn");
+const scoreBtn = document.getElementById("scoreBtn");
+const hallBtn = document.getElementById("hallBtn");
+const hallPanel = document.getElementById("hallPanel");
 const decorateBtn = document.getElementById("decorateBtn");
 const sunPad = document.getElementById("sunPad");
 const sunControlTitle = document.getElementById("sunControlTitle");
@@ -105,6 +110,7 @@ const shareBtn = document.getElementById("shareBtn");
 const hallOfFameListEl = document.getElementById("hallOfFameList");
 const clearHallBtn = document.getElementById("clearHallBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
+const menuToggleBtn = document.getElementById("menuToggleBtn");
 
 function setStartMode(active) {
   document.body.classList.toggle("start-mode", active);
@@ -608,7 +614,7 @@ function updateEndScoreAnimation(dt) {
 }
 
 function drawScoreBreakdownCard(w, h) {
-  if (!state.postRunLockedState || state.decorating) {
+  if (!state.postRunLockedState || state.decorating || !state.scoreCardVisible) {
     return;
   }
 
@@ -786,7 +792,7 @@ function drawGrassField(w, h) {
       const sx = field.left + (x + 0.5) * cellW + sxJitter;
       const syLocal = Math.min(sy + syJitter, field.bottom - 1);
       const upright = len * (0.7 + 0.25 * sun.elevation) * (1 - stoneImpact * 0.22);
-      const towardSun = len * (0.3 + growthRatio * 0.45 + (1 - light) * 0.2);
+      const towardSun = len * (0.15 + growthRatio * 0.225 + (1 - light) * 0.1);
       const naturalPhase = Math.sin(x * 0.19 + y * 0.11 + state.visualTime * 2.3 + n3 * 1.6);
       const gust = naturalPhase * len * 0.07 + breeze * len * 0.035;
       const tipX = sx + bendDirX * towardSun + gust + stoneLeanDir * len * stoneImpact * 0.25;
@@ -878,15 +884,10 @@ function drawMiniHud(w) {
   const y0 = margin;
 
   ctx.save();
-  ctx.fillStyle = "rgba(18, 26, 16, 0.6)";
-  ctx.strokeStyle = "rgba(234, 245, 226, 0.6)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x0, y0, panelW, panelH, 10);
-  ctx.fill();
-  ctx.stroke();
+  ctx.shadowColor = "rgba(0,0,0,0.55)";
+  ctx.shadowBlur = 4;
 
-  ctx.fillStyle = "rgba(242, 252, 236, 0.95)";
+  ctx.fillStyle = "#7ddd50";
   ctx.font = "11px Manrope, sans-serif";
   ctx.fillText("Field Visit Age", x0 + 10, y0 + 16);
 
@@ -936,10 +937,8 @@ function drawMiniHud(w) {
 function drawGrassHeightHud() {
   const panelX = 12;
   const panelY = 12;
-  // Mobile responsive - reduce size and font on small screens
-  const isMobile = window.innerWidth < 560;
-  const panelW = isMobile ? 176 : 240;
-  const panelH = isMobile ? 72 : 96;
+  const panelW = 176;
+  const panelH = 72;
   const plotX = panelX + 10;
   const plotY = panelY + 24;
   const plotW = panelW - 20;
@@ -948,17 +947,19 @@ function drawGrassHeightHud() {
   const cols = HUD_SECTOR_COLS;
 
   ctx.save();
-  ctx.fillStyle = "rgba(22, 35, 28, 0.62)";
-  ctx.strokeStyle = "rgba(229, 245, 220, 0.62)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelW, panelH, 10);
-  ctx.fill();
-  ctx.stroke();
+  ctx.shadowColor = "rgba(0,0,0,0.55)";
+  ctx.shadowBlur = 4;
 
-  ctx.fillStyle = "rgba(240, 252, 232, 0.96)";
-  ctx.font = `${isMobile ? 9 : 11}px Manrope, sans-serif`;
+  ctx.fillStyle = "#7ddd50";
+  ctx.font = "11px Manrope, sans-serif";
+  ctx.textAlign = "left";
   ctx.fillText("Grass Height", panelX + 10, panelY + 16);
+
+  const monthVal = ((state.elapsed / GAME_DURATION_SECONDS) * SIM_MONTHS_TOTAL).toFixed(1);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(125, 221, 80, 0.85)";
+  ctx.fillText(`Mo ${monthVal}`, panelX + panelW - 10, panelY + 16);
+  ctx.textAlign = "left";
 
   for (let r = 0; r < rows; r++) {
     const bandY = plotY + (plotH / rows) * r;
@@ -967,8 +968,8 @@ function drawGrassHeightHud() {
     const yEnd = Math.floor(((r + 1) * GRID_ROWS) / rows);
     const points = [];
 
-    ctx.fillStyle = "rgba(120, 170, 140, 0.18)";
-    ctx.fillRect(plotX, bandY + 1, plotW, bandH - 2);
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 4;
 
     for (let c = 0; c < cols; c++) {
       const xStart = Math.floor((c * GRID_COLS) / cols);
@@ -989,11 +990,10 @@ function drawGrassHeightHud() {
       points.push({ x: px, y: py });
     }
 
-    const green = 166 - r * 20;
-    const red = 80 + r * 12;
-    const blue = 94 - r * 10;
-    ctx.strokeStyle = `rgb(${red}, ${green}, ${blue})`;
-    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = "rgba(100, 230, 60, 0.95)";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "rgba(0,0,0,0.7)";
+    ctx.shadowBlur = 5;
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
@@ -1002,9 +1002,11 @@ function drawGrassHeightHud() {
     ctx.stroke();
 
     for (const p of points) {
-      ctx.fillStyle = `rgb(${Math.max(40, red - 20)}, ${Math.min(220, green + 18)}, ${Math.max(45, blue - 6)})`;
+      ctx.fillStyle = "rgba(120, 240, 70, 0.97)";
+      ctx.shadowColor = "rgba(0,0,0,0.7)";
+      ctx.shadowBlur = 4;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -1228,6 +1230,44 @@ function drawFieldStones(w, h) {
   ctx.restore();
 }
 
+function drawTimeScore(w) {
+  const timeLeft = Math.max(0, GAME_DURATION_SECONDS - state.elapsed);
+  const mins = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+  const secs = Math.floor(timeLeft % 60).toString().padStart(2, "0");
+  const timeStr = `${mins}:${secs}`;
+  const scoreStr = Math.floor(state.displayScore).toLocaleString();
+
+  const panelW = 260;
+  const panelH = 68;
+  const panelX = (w - panelW) / 2;
+  const panelY = 10;
+  const midX = panelX + panelW / 2;
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.85)";
+  ctx.shadowBlur = 8;
+  ctx.textAlign = "center";
+
+  // TIME
+  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+  ctx.font = "bold 11px Manrope, sans-serif";
+  ctx.fillText("TIME", panelX + panelW / 4, panelY + 20);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 28px Manrope, sans-serif";
+  ctx.fillText(timeStr, panelX + panelW / 4, panelY + 54);
+
+  // SCORE
+  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+  ctx.font = "bold 11px Manrope, sans-serif";
+  ctx.fillText("SCORE", panelX + (panelW * 3) / 4, panelY + 20);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 28px Manrope, sans-serif";
+  ctx.fillText(scoreStr, panelX + (panelW * 3) / 4, panelY + 54);
+
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
 function draw() {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
@@ -1244,6 +1284,7 @@ function draw() {
   drawSunIndicator(w, h);
   drawGrassHeightHud();
   drawMiniHud(w);
+  drawTimeScore(w);
 }
 
 function setOverlay(text) {
@@ -1323,6 +1364,8 @@ function stopRun() {
   state.scoreAnimActive = true;
   state.scoreAnimPhase = "count-up";
   state.scoreAnimTimer = 0;
+  state.scoreCardVisible = true;
+  state.scoreCardHideTimer = 0;
   decorateBtn.disabled = false;
   if (!state.hallRecordedForRun) {
     recordHallOfFame(state.finalScore);
@@ -1353,6 +1396,8 @@ function showStartPage() {
   state.scoreAnimActive = false;
   state.scoreAnimPhase = "idle";
   state.scoreAnimTimer = 0;
+  state.scoreCardVisible = true;
+  state.scoreCardHideTimer = 0;
   state.hallRecordedForRun = false;
   state.decorations = [];
   state.lastTimestamp = 0;
@@ -1367,6 +1412,7 @@ function showStartPage() {
 
   decorateBtn.disabled = true;
   decoratePanel.hidden = true;
+  if (hallPanel) hallPanel.hidden = true;
   updateSunControlTitle();
   seedField();
   updateLighting();
@@ -1374,11 +1420,9 @@ function showStartPage() {
   overlayMessage.classList.add("start-screen");
   updateHud();
   renderHallOfFame();
-  setOverlay(`GRASS BATTLE\nPress any key to start game.\n${getHallOfFameSummary()}`);
+  setOverlay(`GRASS BATTLE\nv0.1 beta\nPress any key to start game.\n${getHallOfFameSummary()}`);
   draw();
 }
-
-function tick(timestamp) {
   if (!state.lastTimestamp) {
     state.lastTimestamp = timestamp;
   }
@@ -1405,6 +1449,12 @@ function tick(timestamp) {
     }
   } else if (state.postRunLockedState) {
     updateEndScoreAnimation(dt);
+    if (state.scoreCardVisible) {
+      state.scoreCardHideTimer += dt;
+      if (state.scoreCardHideTimer >= 8) {
+        state.scoreCardVisible = false;
+      }
+    }
   }
 
   updateHud();
@@ -1443,10 +1493,13 @@ function startRun() {
   state.scoreAnimActive = false;
   state.scoreAnimPhase = "idle";
   state.scoreAnimTimer = 0;
+  state.scoreCardVisible = true;
+  state.scoreCardHideTimer = 0;
   state.hallRecordedForRun = false;
   state.decorations = [];
   decorateBtn.disabled = true;
   decoratePanel.hidden = true;
+  if (hallPanel) hallPanel.hidden = true;
   updateSunControlTitle();
   setOverlay("");
 }
@@ -1472,6 +1525,8 @@ function reset() {
   state.scoreAnimActive = false;
   state.scoreAnimPhase = "idle";
   state.scoreAnimTimer = 0;
+  state.scoreCardVisible = true;
+  state.scoreCardHideTimer = 0;
   state.hallRecordedForRun = false;
   state.decorations = [];
   state.lastTimestamp = 0;
@@ -1485,6 +1540,7 @@ function reset() {
 
   decorateBtn.disabled = true;
   decoratePanel.hidden = true;
+  if (hallPanel) hallPanel.hidden = true;
   updateSunControlTitle();
   seedField();
   updateLighting();
@@ -1492,7 +1548,7 @@ function reset() {
   overlayMessage.classList.add("start-screen");
   updateHud();
   renderHallOfFame();
-  setOverlay(`GRASS BATTLE\nPress any key to start game.\n${getHallOfFameSummary()}`);
+  setOverlay(`GRASS BATTLE\nv0.1 beta\nPress any key to start game.\n${getHallOfFameSummary()}`);
   state.waitingForStartKey = true;
   draw();
 }
@@ -1641,11 +1697,34 @@ function bindControls() {
 
   resetBtn.addEventListener("click", reset);
 
+  if (scoreBtn) {
+    scoreBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.scoreCardVisible = !state.scoreCardVisible;
+    });
+  }
+
+  if (hallBtn) {
+    hallBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (hallPanel) hallPanel.hidden = !hallPanel.hidden;
+    });
+  }
+
   if (clearHallBtn) {
     clearHallBtn.addEventListener("click", () => {
       saveHallOfFame([]);
       renderHallOfFame([]);
       showOverlayTopHint("Hall of Fame cleared", 1200);
+    });
+  }
+
+  if (menuToggleBtn) {
+    menuToggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const controls = menuToggleBtn.closest(".controls");
+      controls.classList.toggle("collapsed");
+      menuToggleBtn.textContent = controls.classList.contains("collapsed") ? "▴" : "▾";
     });
   }
 
@@ -1698,7 +1777,14 @@ function bindControls() {
   sunPad.addEventListener("touchmove", onPadMove, { passive: false });
 
   canvas.addEventListener("pointerdown", placeDecoration);
-  canvas.addEventListener("click", placeDecoration);
+  canvas.addEventListener("click", (e) => {
+    placeDecoration(e);
+    // Hide all bottom panels when tapping the game field
+    if (!state.decorating) {
+      if (hallPanel) hallPanel.hidden = true;
+      decoratePanel.hidden = true;
+    }
+  });
   canvas.addEventListener("touchstart", placeDecoration, { passive: false });
 
   document.querySelectorAll(".swatch").forEach((button) => {
