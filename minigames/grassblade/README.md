@@ -1,20 +1,26 @@
-# GrassBlade Prototype
+﻿# GrassBlade
 
-A mobile-first browser prototype inspired by https://github.com/PLAAKKON/grassbattle.
+GrassBlade is a browser mini-game about directional plant growth, chlorophyll drops and tactical balance.
+
+## Gameplay
+
+- Every 5 seconds, place a chlorophyll drop on one of the selectable growth cells.
+- The blade grows upward while being pulled toward the drop position.
+- A center drop gives stable but slower growth.
+- A slightly sunward drop gives the best growth.
+- A drop that is too far sideways makes the blade weaker and harder to control.
+- Each run generates a new procedural cell field, so the best choice shifts over time.
 
 ## Features
 
-- 1.5-minute run where 1.5 minutes simulates 4 months of growth
-- 3m x 3m lawn represented as a 40 x 25 simulation grid (1,000 simulated blades)
-- Each simulated blade represents 100 real blades (effective 100,000 blade behavior)
-- Directional light with blade-to-blade shadow interactions
-- Score based on total grass centimeters
-- End-of-run decoration mode (flowers, butterflies, ladybugs)
-- Screenshot save + Web Share support fallback
+- Fast, arcade-friendly sessions
+- Easy to learn, hard to master directional growth feedback
+- Procedural optimal placement each turn
+- Local high score tracking in the browser
 
 ## Run
 
-You can open `index.html` directly, but serving with a local static server is recommended.
+Open `index.html` directly in a browser or serve the folder with a local static server for the best experience.
 
 Example using Node:
 
@@ -22,4 +28,4 @@ Example using Node:
 npx serve .
 ```
 
-Then open the local URL on desktop or mobile browser.
+Then open the local URL and play `minigames/grassblade/index.html`.
