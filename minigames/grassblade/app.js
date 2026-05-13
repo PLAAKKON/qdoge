@@ -1,6 +1,6 @@
 ﻿const GAME_TURNS = 5;
-const TURN_DURATION = 5;
-const MAX_BLADE_LENGTH = 18;
+const TURN_DURATION = 10;
+const MAX_BLADE_LENGTH = 60;
 const INITIAL_SUN_ANGLE_DEG = 45;
 const SUN_DEGREES_PER_TURN = 20;
 const HALL_OF_FAME_KEY = "grassblade.hallOfFame.v1";
@@ -28,8 +28,25 @@ const state = {
   score: 0,
   finalScore: 0,
   hallRecorded: false,
+  endScreenShown: false,
   lastTimestamp: 0,
   sunAngleDeg: INITIAL_SUN_ANGLE_DEG,
+  actualHeight: 0,
+  straightness: 1,
+  isGameEnded: false,
+  gameEndTime: 0,
+  lastSunAlignmentMessage: 0,
+  showingPerfectSunMessage: false,
+  perfectSunMessageTime: 0,
+  lastSunAlignment: 0,
+  finalMaxHeight: 0,
+  finalEffectiveHeight: 0,
+  finalStraightness: 0,
+  perfectAlignmentBonus: 0,
+  maxPerfectAlignmentBonus: 0,
+  sunDirection: -1,
+  sunBoostActive: false,
+  sunBoostEndTime: 0,
 };
 
 const canvas = document.getElementById("grassCanvas");
@@ -42,15 +59,49 @@ const resetBtn = document.getElementById("resetBtn");
 const scoreBtn = document.getElementById("scoreBtn");
 const hallBtn = document.getElementById("hallBtn");
 const hallPanel = document.getElementById("hallPanel");
-const decorateBtn = document.getElementById("decorateBtn");
-const screenshotBtn = document.getElementById("screenshotBtn");
-const shareBtn = document.getElementById("shareBtn");
 const hallOfFameListEl = document.getElementById("hallOfFameList");
 const clearHallBtn = document.getElementById("clearHallBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
-const menuToggleBtn = document.getElementById("menuToggleBtn");
 
 const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+function installLayoutFixes() {
+  if (document.getElementById("grassblade-layout-fixes")) return;
+
+  const style = document.createElement("style");
+  style.id = "grassblade-layout-fixes";
+  style.textContent = `
+    /* Remove the extra mouse-control strip at the bottom. */
+    .mouse-control-panel,
+    .mouse-panel,
+    .control-panel,
+    .pointer-control,
+    .touch-control,
+    .joystick-panel,
+    .slider-panel,
+    .bottom-control,
+    .bottom-controls,
+    #mouseControlPanel,
+    #mouseControls,
+    #pointerControl,
+    #touchControl,
+    #joystickPanel,
+    #sliderPanel {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    #grassCanvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+      background: transparent !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -70,6 +121,24 @@ function normalizeAngle(angle) {
   while (a > Math.PI) a -= Math.PI * 2;
   while (a < -Math.PI) a += Math.PI * 2;
   return a;
+}
+
+function constrainSunToNorthernHemisphere(angleDeg) {
+  // Sun stays between 270° (west), 0° (north), and 90° (east)
+  // Forbidden zone: 90° to 270° (eastern to southern to western below)
+  let angle = angleDeg % 360;
+  if (angle < 0) angle += 360;
+  
+  // If in forbidden zone (90-270), wrap it back
+  if (angle > 90 && angle < 270) {
+    // Clamp to nearest boundary
+    if (angle < 180) {
+      angle = 90;
+    } else {
+      angle = 270;
+    }
+  }
+  return angle;
 }
 
 function normalizeHallOfFame(scores) {
@@ -179,7 +248,7 @@ function showStartScreen(message = "") {
         <button id="settingsBtn" class="btn btn-secondary">SETTINGS</button>
       </div>
       <div class="start-tip">
-        5 turns. 5 seconds per turn. Pick the best cell for sunlight.
+        5 turns. 10 seconds each. Position cells toward sunlight for maximum growth.
       </div>
     </div>
   `;
@@ -230,7 +299,24 @@ function startGame() {
   state.score = 0;
   state.finalScore = 0;
   state.hallRecorded = false;
+  state.endScreenShown = false;
   state.sunAngleDeg = INITIAL_SUN_ANGLE_DEG;
+  state.actualHeight = 0;
+  state.straightness = 1;
+  state.isGameEnded = false;
+  state.gameEndTime = 0;
+  state.lastSunAlignmentMessage = 0;
+  state.showingPerfectSunMessage = false;
+  state.perfectSunMessageTime = 0;
+  state.lastSunAlignment = 0;
+  state.finalMaxHeight = 0;
+  state.finalEffectiveHeight = 0;
+  state.finalStraightness = 0;
+  state.perfectAlignmentBonus = 0;
+  state.maxPerfectAlignmentBonus = 0;
+  state.sunDirection = -1;
+  state.sunBoostActive = false;
+  state.sunBoostEndTime = 0;
   state.lastTimestamp = performance.now();
 
   generateCellLattice();
@@ -297,9 +383,11 @@ function getInitialActiveCellIndex() {
 }
 
 function showEndScreen() {
+  const animatedScore = getAnimatedFinalScore();
+  
   const hallOfFameScores = loadHallOfFame();
-  const isHighScore = hallOfFameScores.length < 3 || state.finalScore >= hallOfFameScores[hallOfFameScores.length - 1];
-  const rank = hallOfFameScores.findIndex(score => state.finalScore >= score) + 1;
+  const isHighScore = hallOfFameScores.length < 3 || animatedScore >= hallOfFameScores[hallOfFameScores.length - 1];
+  const rank = hallOfFameScores.findIndex(score => animatedScore >= score) + 1;
 
   let rankText = "";
   if (isHighScore && rank <= 3) {
@@ -309,7 +397,7 @@ function showEndScreen() {
   let hallOfFameHtml = '<div class="hall-of-fame-display"><h3>TOP SCORES</h3><ol>';
   for (let i = 0; i < 3; i++) {
     const score = hallOfFameScores[i] ?? 0;
-    const highlight = score === state.finalScore ? ' class="highlighted-score"' : "";
+    const highlight = score === animatedScore ? ' class="highlighted-score"' : "";
     hallOfFameHtml += `<li${highlight}>${(score).toLocaleString()} cm</li>`;
   }
   hallOfFameHtml += '</ol></div>';
@@ -319,11 +407,11 @@ function showEndScreen() {
   overlayMessage.innerHTML = `
     <div class="start-screen-inner" style="max-height:90vh; overflow-y:auto; width:min(92vw,560px); box-sizing:border-box; padding:18px;">
       <div class="hero-copy">
-        <h1 style="font-size:clamp(2rem,7vw,4rem); margin:0 0 8px;">GAME OVER</h1>
+        <h1 style="font-size:clamp(2rem,7vw,4rem); margin:0 0 8px; color:#ffd700;">HARVEST COMPLETE</h1>
         <div class="final-score-display">
-          <div class="final-score-value">${state.finalScore.toLocaleString()}</div>
-          <div class="final-score-label">cm</div>
-          ${rankText ? `<div class="rank-text">${rankText}</div>` : ""}
+          <div class="final-score-value" style="font-size:3.5rem; color:#ffd700;">${animatedScore.toLocaleString()}</div>
+          <div class="final-score-label" style="color:#86c85b;">centimeters</div>
+          ${rankText ? `<div class="rank-text" style="color:#ffd700; font-size:1.3rem; margin-top:8px;">${rankText}</div>` : ""}
         </div>
         ${hallOfFameHtml}
       </div>
@@ -343,14 +431,27 @@ function showEndScreen() {
 
 function endGame() {
   state.running = false;
-  state.finalScore = Math.max(0, Math.floor(state.score));
+  state.isGameEnded = true;
+  state.gameEndTime = performance.now() / 1000;
+
+  const bounds = canvas.getBoundingClientRect();
+  const measuredHeight = calculateEffectiveBladeHeight(bounds.width, bounds.height);
+
+  // If the blade is perfectly straight at the final measurement,
+  // score equals the measured height. Tilt reduces the final score.
+  const straightnessFactor = clamp(
+    1 - Math.abs(state.bladeAngle) * 0.35,
+    0,
+    1
+  );
+
+  state.finalScore = Math.floor(measuredHeight * straightnessFactor);
+  state.score = state.finalScore;
 
   if (!state.hallRecorded) {
     recordHallOfFame(state.finalScore);
     state.hallRecorded = true;
   }
-
-  showEndScreen();
 }
 
 function getLocalTwist(progress) {
@@ -509,6 +610,63 @@ function sampleBladePath(points, progress) {
   };
 }
 
+function calculateBladeStraightness() {
+  // Calculate straightness by counting cells on left vs right side
+  let leftCells = 0;
+  let rightCells = 0;
+
+  for (const cell of state.cells) {
+    if (cell.offsetFromCenter < -0.1) {
+      leftCells++;
+    } else if (cell.offsetFromCenter > 0.1) {
+      rightCells++;
+    }
+  }
+
+  // Straightness: 0 if heavily skewed, 1 if perfectly balanced
+  const total = leftCells + rightCells;
+  if (total === 0) return 1;
+
+  const ratio = Math.min(leftCells, rightCells) / Math.max(leftCells, rightCells);
+  return ratio; // 0 to 1, where 1 is perfectly balanced
+}
+
+function calculateEffectiveBladeHeight(w, h) {
+  // Calculate the effective height considering blade angle and twist
+  const baseX = w * 0.5;
+  const baseY = h * 0.92;
+  const lengthPx = 130 + state.bladeLength * 26;
+  const path = getBladePath(baseX, baseY, lengthPx);
+  
+  if (path.length === 0) return 0;
+  
+  const tip = path[path.length - 1];
+  const groundY = baseY;
+  
+  // Actual vertical height from tip position
+  const heightPx = Math.max(0, groundY - tip.y);
+  return Math.round(heightPx * 0.15);
+}
+
+function calculateFinalScore(w, h) {
+  // Maximum possible points = blade length in cm
+  const maxHeight = state.actualHeight;
+  
+  // Current effective height (reduced if blade is tilted)
+  const effectiveHeight = calculateEffectiveBladeHeight(w, h);
+  
+  // Base score from effective height
+  const baseScore = Math.max(0, effectiveHeight);
+  
+  // Straightness bonus: up to 10% of max height for perfect straightness
+  const straightnessBonus = state.straightness * state.straightness * (maxHeight * 0.1);
+  
+  // Total score
+  const totalScore = Math.floor(baseScore + straightnessBonus);
+  
+  return totalScore;
+}
+
 function getGrowthParameters() {
   const activeCell = getActiveCell();
 
@@ -558,20 +716,23 @@ function getGrowthParameters() {
     1
   );
 
+  // Solar alignment is now critical: linear component + quadratic boost for optimal alignment
+  // At sunAlignment = 1.0, this contributes 1.8 + 0.8 = 2.6 (vs. 0.85 before)
   const vigor = clamp(
     activeCell.quality * 0.45 +
-      sunAlignment * 0.85 +
+      sunAlignment * 1.8 +
+      sunAlignment * sunAlignment * 0.8 +
       centerStability * 0.16 +
       activeCell.energy * 0.035,
     0.12,
-    1.85
+    2.4
   );
 
   const twistPenalty = Math.max(0, Math.abs(state.bladeTwist) - 3.5) * 0.12;
   const tiltPenalty = Math.max(0, Math.abs(state.bladeAngle) - 1.1) * 0.35;
-  const growth = clamp(0.22 + vigor * 1.22 - tiltPenalty - twistPenalty, 0.05, 2.55);
+  const growth = clamp(0.11 + vigor * 0.61 - tiltPenalty - twistPenalty, 0.025, 1.475);
 
-  const growthScale = clamp(10 + sunAlignment * 10, 10, 20);
+  const growthScale = clamp(15 + sunAlignment * 15, 15, 30);
 
   return {
     targetAngle,
@@ -594,25 +755,26 @@ function updateCellGrowth(dt) {
     const exposure = getLightExposure(cell, cell.positionAlongBlade, sunAngleRad);
     const activeInfluence = getActiveInfluence(cell);
 
-    const passivePhotosynthesis = exposure * cell.quality * 0.012 * dt;
+    const passivePhotosynthesis = exposure * cell.quality * 0.006 * dt;
     const activeGrowth =
       exposure *
       cell.quality *
       smootherstep(activeInfluence) *
-      1.15 *
+      0.575 *
       dt;
+    const sunHitBonus = exposure * exposure * 0.008 * dt;
 
-    cell.energy += passivePhotosynthesis + activeGrowth;
+    cell.energy += passivePhotosynthesis + activeGrowth + sunHitBonus;
     cell.energy = clamp(cell.energy, 0, 4.5);
 
     cell.size = clamp(
-      cell.size + activeGrowth * 0.24,
+      cell.size + activeGrowth * 0.12 + sunHitBonus * 0.04,
       0.78,
       1.45
     );
 
     cell.division = clamp(
-      cell.division + activeGrowth * 0.16,
+      cell.division + activeGrowth * 0.08,
       0,
       1
     );
@@ -620,13 +782,89 @@ function updateCellGrowth(dt) {
     totalActivation += activeGrowth;
   }
 
-  active.energy = clamp(active.energy + 0.18 * dt, 0, 4.5);
-  active.size = clamp(active.size + 0.12 * dt, 0.78, 1.55);
+  active.energy = clamp(active.energy + 0.09 * dt, 0, 4.5);
+  active.size = clamp(active.size + 0.06 * dt, 0.78, 1.55);
 
   return totalActivation;
 }
 
+function updateSunAlignmentMessages(params, currentTime) {
+  // Check for perfect perpendicular alignment (kasvi kohtisuoraan aurinkoa)
+  if (params.sunAlignment > 0.95) {
+    // Perfect alignment bonus: track how long kasvi has been perpendicular
+    if (!state.lastPerfectAlignmentStart) {
+      state.lastPerfectAlignmentStart = currentTime;
+    }
+    const perfectDuration = currentTime - state.lastPerfectAlignmentStart;
+    // Award bonus for every 0.5 seconds of perfect alignment (max once per turn)
+    if (perfectDuration > 0.5 && perfectDuration < TURN_DURATION - 0.1) {
+      state.perfectAlignmentBonus += state.finalMaxHeight * 0.05; // +5% bonus
+      state.lastPerfectAlignmentStart = currentTime; // Reset for next bonus opportunity
+    }
+  } else {
+    state.lastPerfectAlignmentStart = null;
+  }
+  
+  // Näytä "perfect position towards sun" kun alignment on yli 92%
+  if (params.sunAlignment > 0.92) {
+    // Näytä viesti 1 sekunnin väliajoin
+    if (currentTime - state.lastSunAlignmentMessage > 1.0) {
+      state.lastSunAlignmentMessage = currentTime;
+      
+      // Näytä "perfect position" kun alignment on lähes täydellinen
+      if (params.sunAlignment > 0.92) {
+        state.showingPerfectSunMessage = true;
+        state.perfectSunMessageTime = currentTime;
+      }
+    }
+  }
+}
+
+function getScoringAnimationProgress() {
+  if (!state.isGameEnded) return 0;
+  const elapsed = performance.now() / 1000 - state.gameEndTime;
+  const duration = 3.5; // 3.5 sekuntia animaatiolle
+  const progress = Math.min(elapsed / duration, 1);
+  return smootherstep(progress);
+}
+
+function getAnimatedFinalScore() {
+  const progress = getScoringAnimationProgress();
+  const animatedScore = Math.floor(state.finalScore * progress);
+  return Math.min(animatedScore, state.finalScore);
+}
+
+
+function getSunBoostMultiplier(sunAlignment, currentTime) {
+  // End the current boost as soon as its 1.2 second timer expires.
+  if (state.sunBoostActive && currentTime >= state.sunBoostEndTime) {
+    state.sunBoostActive = false;
+  }
+
+  // Start a new boost immediately after the previous one has ended,
+  // whenever the blade is very well aligned with the sun.
+  if (!state.sunBoostActive && sunAlignment > 0.92) {
+    state.sunBoostActive = true;
+    state.sunBoostEndTime = currentTime + 1.2;
+  }
+
+  return state.sunBoostActive ? 1.8 : 1;
+}
+
 function updateGame(dt) {
+  if (state.isGameEnded) {
+    // Game is frozen, just check if end screen should be shown.
+    // Hall of Fame recording is handled once in endGame().
+    const animProgress = getScoringAnimationProgress();
+
+    if (animProgress >= 1 && !state.endScreenShown) {
+      state.endScreenShown = true;
+      showEndScreen();
+    }
+
+    return;
+  }
+
   if (!state.running) return;
 
   state.turnTime += dt;
@@ -634,6 +872,11 @@ function updateGame(dt) {
   state.activeCellIndex = state.selectedCellIndex;
 
   const params = getGrowthParameters();
+  const currentTime = performance.now() / 1000;
+  
+  // Update sun alignment messages
+  updateSunAlignmentMessages(params, currentTime);
+  
   const activationGrowth = updateCellGrowth(dt);
 
   state.bladeAngularVelocity +=
@@ -649,21 +892,40 @@ function updateGame(dt) {
   const instability = Math.max(0, Math.abs(state.bladeAngle) - 1.15) * 0.22;
   const twistInstability = Math.max(0, Math.abs(state.bladeTwist) - 4.0) * 0.08;
 
-  state.bladeLength = clamp(
-    state.bladeLength +
-      (params.growth + activationGrowth * 0.42 - instability - twistInstability) *
-        dt,
-    0,
-    MAX_BLADE_LENGTH
+  const sunBoostMultiplier = getSunBoostMultiplier(
+    params.sunAlignment,
+    currentTime
   );
 
+  // Unlimited grass growth. Sun alignment still rewards the player
+  // by making the grass grow faster through the 1.2 second boost.
+  state.bladeLength = Math.max(
+    0,
+    state.bladeLength +
+      (
+        params.growth * sunBoostMultiplier +
+        activationGrowth * 0.42 -
+        instability -
+        twistInstability
+      ) * dt
+  );
+
+  // Calculate straightness and actual height
+  state.straightness = calculateBladeStraightness();
+  // Approximate actual height from blade length: base + length * scaling factor
+  state.actualHeight = Math.round((130 + state.bladeLength * 26) * 0.15);
+
+  // Scoring system: height as base, with bonuses and penalties
+  const heightBonus = state.actualHeight * 1.2;
+  const straightnessBonus = state.straightness * state.straightness * 200; // Quadratic reward for straightness
+  const straightnessPenalty = Math.max(0, 1 - state.straightness) * 80; // Penalty for crookedness
   const activeEnergy = params.cell ? params.cell.energy : 0;
-  const sunBonus = params.sunAlignment * 260;
+  const sunBonus = params.sunAlignment * params.sunAlignment * 250;
   const stabilityBonus = Math.max(0, 1 - Math.abs(state.bladeAngle) * 0.35) * 40;
   const activeBonus = activeEnergy * 16;
 
   state.score = Math.floor(
-    state.bladeLength * 120 + sunBonus + stabilityBonus + activeBonus
+    heightBonus + straightnessBonus - straightnessPenalty + sunBonus + stabilityBonus + activeBonus
   );
 
   if (timeLeftEl) {
@@ -710,6 +972,26 @@ function chooseNextSuggestedCell() {
   return bestIndex;
 }
 
+function getNextSunAngle() {
+  if (state.sunDirection === 0 || state.sunDirection == null) {
+    state.sunDirection = -1;
+  }
+
+  let nextAngle = state.sunAngleDeg + state.sunDirection * SUN_DEGREES_PER_TURN;
+  nextAngle = ((nextAngle % 360) + 360) % 360;
+
+  if (nextAngle > 90 && nextAngle < 270) {
+    if (state.sunDirection < 0) {
+      nextAngle = 270;
+    } else {
+      nextAngle = 90;
+    }
+    state.sunDirection *= -1;
+  }
+
+  return nextAngle;
+}
+
 function advanceTurn() {
   if (state.turn >= GAME_TURNS) {
     endGame();
@@ -726,7 +1008,7 @@ function advanceTurn() {
     state.bladeLength = clamp(state.bladeLength - 0.15, 0, MAX_BLADE_LENGTH);
   }
 
-  state.sunAngleDeg += SUN_DEGREES_PER_TURN;
+  state.sunAngleDeg = getNextSunAngle();
 
   // Solut eivät vaihdu eivätkä hypi.
   // Uuden vuoron alussa vain ehdotetaan seuraavaa hyvää solua.
@@ -763,14 +1045,13 @@ function pickClosestCell(positionX, positionY, width, height) {
 }
 
 function handleCanvasPointer(event) {
+  if (!state.running) {
+    return;
+  }
+
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
-
-  if (!state.running) {
-    startGame();
-    return;
-  }
 
   state.selectedCellIndex = pickClosestCell(x, y, rect.width, rect.height);
   state.activeCellIndex = state.selectedCellIndex;
@@ -1009,9 +1290,59 @@ function drawBlade(w, h) {
   const lengthPx = 130 + state.bladeLength * 26;
   const path = getBladePath(baseX, baseY, lengthPx);
 
+  drawBladeShadow(path, w, h);
   drawBladeSilhouette(path);
   drawCellsOnBlade(path);
   drawBladeVeins(path);
+}
+
+function drawBladeShadow(path, w, h) {
+  if (!path || path.length < 2) return;
+
+  const groundY = h * 0.92;
+  const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
+
+  // Project every blade path point onto the ground opposite from the sun.
+  // This makes the shadow length, width and shape follow the real plant curve.
+  const shadowDirX = -Math.sin(sunAngleRad);
+  const shadowDirY = 0.22;
+  const projected = path.map((p) => {
+    const heightAboveGround = Math.max(0, groundY - p.y);
+    const projection = heightAboveGround * 0.58;
+    return {
+      x: p.x + shadowDirX * projection,
+      y: groundY + shadowDirY * projection,
+      width: Math.max(3, p.width * (0.3 + p.progress * 0.35)),
+      angle: p.angle,
+      progress: p.progress,
+    };
+  });
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.filter = "blur(2.2px)";
+  ctx.strokeStyle = "rgba(29, 70, 28, 0.24)";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (let i = 1; i < projected.length; i++) {
+    const a = projected[i - 1];
+    const b = projected[i];
+    ctx.lineWidth = lerp(a.width, b.width, 0.5);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+
+  // Small soft contact shadow at the root.
+  const base = path[0];
+  ctx.filter = "blur(3px)";
+  ctx.fillStyle = "rgba(25, 60, 24, 0.26)";
+  ctx.beginPath();
+  ctx.ellipse(base.x + shadowDirX * 14, groundY + 3, 28, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawBladeVeins(path) {
@@ -1186,131 +1517,171 @@ function drawCellsOnBlade(path) {
   }
 }
 
-function drawHud(w, h) {
-  const params = getGrowthParameters();
-  const active = getActiveCell();
-
-  // Draw labels and values at top left - ENLARGED
-  const labelStyle = "600 13px Manrope, sans-serif";
-  const valueStyle = "700 22px Manrope, sans-serif";
-  const labelColor = "rgba(32, 52, 36, 0.8)";
-  const valueColor = "rgba(15, 34, 18, 0.98)";
-  const padding = w * 0.02;
-  let x = padding;
-  const yLabel = h * 0.032;
-  const yValue = h * 0.07;
-  const colSpacing = w * 0.15;
-
-  // TIME column
-  ctx.fillStyle = labelColor;
-  ctx.font = labelStyle;
-  ctx.textAlign = "left";
-  ctx.fillText("TIME", x, yLabel);
-  ctx.fillStyle = valueColor;
-  ctx.font = valueStyle;
-  ctx.fillText(`${Math.max(0, Math.ceil(TURN_DURATION - state.turnTime))}s`, x, yValue);
-
-  // MONTH column
-  x += colSpacing;
-  ctx.fillStyle = labelColor;
-  ctx.font = labelStyle;
-  ctx.fillText("MONTH", x, yLabel);
-  ctx.fillStyle = valueColor;
-  ctx.font = valueStyle;
-  ctx.fillText(`${state.turn}/${GAME_TURNS}`, x, yValue);
-
-  // Right side - SCORE (highlighted)
-  let xRight = w - padding;
-  ctx.textAlign = "right";
-  ctx.fillStyle = labelColor;
-  ctx.font = labelStyle;
-  ctx.fillText("SCORE", xRight, yLabel);
-  ctx.fillStyle = "#d88e40";
-  ctx.font = "700 22px Manrope, sans-serif";
-  ctx.fillText(`${state.score.toLocaleString()}`, xRight, yValue);
-
-  // Additional info right side
-  ctx.fillStyle = valueColor;
-  ctx.font = "600 11px Manrope, sans-serif";
-  const sunDeg = getSunIncidenceDegrees(active);
-  const twistDeg = Math.round((state.bladeTwist * 180) / Math.PI);
-  ctx.fillText(`Sun ${Math.round(params.sunAlignment * 100)}% Ray ${sunDeg}° Twist ${twistDeg}°`, xRight, h * 0.085);
-
-  // Help text at bottom
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "600 11px Manrope, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Pick green cells. Edge cells twist the blade.",
-    w * 0.5,
-    h * 0.88
-  );
-}
-
-function drawSunRays(w, h) {
-  const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
-  const baseX = w * 0.5;
-  const baseY = h * 0.92;
-
-  // Draw 3-4 sun rays from sky down through the grass
+function drawGlassPanel(x, y, width, height, radius = 12) {
   ctx.save();
-  ctx.strokeStyle = "rgba(255, 255, 200, 0.4)";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
+  const gradient = ctx.createLinearGradient(x, y, x, y + height);
+  gradient.addColorStop(0, "rgba(248, 255, 248, 0.72)");
+  gradient.addColorStop(1, "rgba(216, 244, 209, 0.50)");
+  ctx.fillStyle = gradient;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.86)";
+  ctx.lineWidth = 1.4;
+  ctx.shadowColor = "rgba(35, 86, 35, 0.18)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
 
-  const raySpacing = Math.PI / 12; // Spread rays around sun direction
-  for (let i = -1; i <= 1; i++) {
-    const angle = sunAngleRad + (i * raySpacing);
-    const rayLength = h * 1.8;
-
-    // Find sun position in sky
-    const sunArcCy = h * 0.18;
-    const sunArcR = w * 0.42;
-    const sunX = w * 0.5 + sunArcR * Math.sin(angle);
-    const sunY = sunArcCy - sunArcR * Math.cos(angle);
-
-    // Extend downward
-    const downDist = rayLength;
-    const rayEndX = sunX + Math.sin(angle) * downDist;
-    const rayEndY = sunY + Math.cos(angle) * downDist;
-
-    ctx.beginPath();
-    ctx.moveTo(sunX, sunY);
-    ctx.lineTo(rayEndX, rayEndY);
-    ctx.stroke();
-  }
-
-  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
-function drawSunIndicator(w, h) {
-  const centerX = w * 0.5;
-  const centerY = h * 0.24;
-  const radius = w * 0.18;
-
+function drawSunDirectionHud(w, h, params, active) {
+  const size = clamp(w * 0.15, 118, 178);
+  const x = w - size - w * 0.025;
+  const y = h * 0.035;
+  const cx = x + size * 0.5;
+  const cy = y + size * 0.55;
+  const r = size * 0.29;
   const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
-  const sunX = centerX + radius * Math.sin(sunAngleRad);
-  const sunY = centerY - radius * Math.cos(sunAngleRad);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.5)";
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([5, 8]);
+  drawGlassPanel(x, y, size, size, 16);
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(28, 54, 43, 0.92)";
+  ctx.font = "800 13px Manrope, sans-serif";
+  ctx.fillText("SUN DIRECTION", cx, y + 24);
+
+  ctx.strokeStyle = "rgba(33, 63, 51, 0.55)";
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([2, 4]);
   ctx.beginPath();
-  ctx.moveTo(centerX, h * 0.44);
-  ctx.lineTo(sunX, sunY);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  ctx.fillStyle = "rgba(255,236,138,0.95)";
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, 12, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle = "rgba(28, 54, 43, 0.86)";
+  ctx.font = "700 12px Manrope, sans-serif";
+  ctx.fillText("N", cx, cy - r - 7);
+  ctx.fillText("S", cx, cy + r + 15);
+  ctx.fillText("W", cx - r - 13, cy + 4);
+  ctx.fillText("E", cx + r + 13, cy + 4);
 
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.font = "600 13px Manrope, sans-serif";
+  const arrowX = cx + Math.sin(sunAngleRad) * r;
+  const arrowY = cy - Math.cos(sunAngleRad) * r;
+  ctx.strokeStyle = "#ffd51f";
+  ctx.fillStyle = "#ffd51f";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(arrowX, arrowY);
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(arrowX, arrowY);
+  ctx.rotate(sunAngleRad);
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(-5, 4);
+  ctx.lineTo(5, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.shadowColor = "rgba(255, 220, 66, 0.8)";
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(arrowX, arrowY, 8, 0, Math.PI * 2);
+  ctx.fillStyle = "#fff36d";
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawSideInfoHud(w, h, params, active) {
+  const x = w - clamp(w * 0.13, 108, 150) - w * 0.025;
+  const y = h * 0.28;
+  const width = clamp(w * 0.13, 108, 150);
+  const height = 132;
+
+  drawGlassPanel(x, y, width, height, 14);
+
+  ctx.save();
   ctx.textAlign = "center";
-  ctx.fillText("Sun direction", sunX, sunY - 20);
+  ctx.fillStyle = "rgba(28, 54, 43, 0.82)";
+  ctx.font = "800 12px Manrope, sans-serif";
+  ctx.fillText("ANGLE", x + width / 2, y + 27);
+  ctx.fillStyle = "rgba(23, 45, 34, 0.96)";
+  ctx.font = "800 24px Manrope, sans-serif";
+  ctx.fillText(`${Math.round((state.bladeAngle * 180) / Math.PI)}°`, x + width / 2, y + 57);
+
+  ctx.strokeStyle = "rgba(50, 98, 60, 0.18)";
+  ctx.beginPath();
+  ctx.moveTo(x + 18, y + 75);
+  ctx.lineTo(x + width - 18, y + 75);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(28, 54, 43, 0.82)";
+  ctx.font = "800 12px Manrope, sans-serif";
+  ctx.fillText("HEIGHT", x + width / 2, y + 97);
+  ctx.fillStyle = "rgba(23, 45, 34, 0.96)";
+  ctx.font = "800 24px Manrope, sans-serif";
+  ctx.fillText(`${state.actualHeight}cm`, x + width / 2, y + 123);
+  ctx.restore();
+}
+
+function drawHud(w, h) {
+  const params = getGrowthParameters();
+  const active = getActiveCell();
+  const pad = w * 0.025;
+  const panelW = clamp(w * 0.22, 250, 370);
+  const panelH = 72;
+  const x = pad;
+  const y = h * 0.035;
+
+  drawGlassPanel(x, y, panelW, panelH, 14);
+
+  ctx.save();
+  const colW = panelW / 3;
+  const labels = ["TIME", "MONTH", "SCORE"];
+  const values = [
+    `${Math.max(0, Math.ceil(TURN_DURATION - state.turnTime))}s`,
+    `${state.turn}/${GAME_TURNS}`,
+    state.score.toLocaleString(),
+  ];
+
+  ctx.textAlign = "center";
+  for (let i = 0; i < 3; i++) {
+    const cx = x + colW * (i + 0.5);
+    ctx.fillStyle = "rgba(28, 54, 43, 0.78)";
+    ctx.font = "800 12px Manrope, sans-serif";
+    ctx.fillText(labels[i], cx, y + 24);
+    ctx.fillStyle = i === 2 ? "#f2a900" : "rgba(20, 38, 31, 0.96)";
+    ctx.font = "800 26px Manrope, sans-serif";
+    ctx.fillText(values[i], cx, y + 54);
+
+    if (i > 0) {
+      ctx.strokeStyle = "rgba(255,255,255,0.75)";
+      ctx.beginPath();
+      ctx.moveTo(x + colW * i, y + 16);
+      ctx.lineTo(x + colW * i, y + panelH - 16);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  drawSunDirectionHud(w, h, params, active);
+  drawSideInfoHud(w, h, params, active);
 }
 
 function drawGridLines(w, h) {
@@ -1333,47 +1704,51 @@ function drawGridLines(w, h) {
 }
 
 function drawTopDownHUD(w, h) {
-  const hudSize = 160;
-  const hudMargin = 12;
+  const hudSize = clamp(w * 0.12, 118, 150);
+  const hudMargin = w * 0.025;
   const hudX = hudMargin;
-  const hudY = h - hudSize - hudMargin - 60;
+  const hudY = h - hudSize - h * 0.06;
+  const cornerRadius = 12;
+  const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
 
   ctx.save();
+  drawGlassPanel(hudX, hudY, hudSize, hudSize, cornerRadius);
 
-  // Draw HUD background with subtle border
-  ctx.fillStyle = "rgba(15, 34, 18, 0.92)";
-  ctx.fillRect(hudX, hudY, hudSize, hudSize);
-
-  ctx.strokeStyle = "rgba(134, 200, 91, 0.5)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(hudX, hudY, hudSize, hudSize);
-
-  // Add corner decorations
-  const cornerSize = 8;
-  ctx.fillStyle = "rgba(134, 200, 91, 0.4)";
-  // Top-left corner
-  ctx.fillRect(hudX, hudY, cornerSize, 2);
-  ctx.fillRect(hudX, hudY, 2, cornerSize);
-  // Bottom-right corner
-  ctx.fillRect(hudX + hudSize - cornerSize, hudY + hudSize - 2, cornerSize, 2);
-  ctx.fillRect(hudX + hudSize - 2, hudY + hudSize - cornerSize, 2, cornerSize);
-
-  // Set up top-down view transform (center of HUD)
   const hudCenterX = hudX + hudSize * 0.5;
   const hudCenterY = hudY + hudSize * 0.5;
 
+  // Sun ray overlay in the left HUD.
+  const rayLength = hudSize * 0.78;
+  ctx.save();
+  ctx.translate(hudCenterX, hudCenterY);
+  ctx.rotate(sunAngleRad);
+  ctx.strokeStyle = "rgba(255, 214, 45, 0.78)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, -rayLength * 0.5);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(255, 235, 76, 0.92)";
+  ctx.shadowColor = "rgba(255, 220, 66, 0.72)";
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.arc(0, -rayLength * 0.5, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
   ctx.translate(hudCenterX, hudCenterY);
   ctx.rotate(state.bladeAngle);
 
-  // Draw blade cross-section from above
   const bladeWidth = hudSize * 0.52;
   const bladeLength = hudSize * 0.72;
 
-  // Gradient for blade
   const bladeGradientTopDown = ctx.createLinearGradient(0, -bladeLength * 0.5, 0, bladeLength * 0.5);
-  bladeGradientTopDown.addColorStop(0, "rgba(86, 148, 52, 0.8)");
-  bladeGradientTopDown.addColorStop(0.5, "rgba(108, 180, 66, 0.95)");
-  bladeGradientTopDown.addColorStop(1, "rgba(133, 200, 78, 0.8)");
+  bladeGradientTopDown.addColorStop(0, "rgba(86, 148, 52, 0.70)");
+  bladeGradientTopDown.addColorStop(0.5, "rgba(108, 180, 66, 0.92)");
+  bladeGradientTopDown.addColorStop(1, "rgba(133, 200, 78, 0.72)");
 
   ctx.fillStyle = bladeGradientTopDown;
   ctx.beginPath();
@@ -1384,162 +1759,174 @@ function drawTopDownHUD(w, h) {
   ctx.closePath();
   ctx.fill();
 
-  // Add spiral twist visualization - dark stripes following twist
-  const twistStripes = 4;
-  const twistPerStripe = (state.bladeTwist / twistStripes) * 0.3;
-  ctx.strokeStyle = "rgba(30, 60, 30, 0.6)";
+  ctx.strokeStyle = "rgba(30, 60, 30, 0.50)";
   ctx.lineWidth = 1;
-  for (let stripe = 0; stripe < twistStripes; stripe++) {
-    const stripeX = (stripe - twistStripes * 0.5) * (bladeWidth * 0.18);
+  for (let stripe = 0; stripe < 4; stripe++) {
+    const stripeX = (stripe - 1.5) * (bladeWidth * 0.18);
     ctx.beginPath();
     for (let i = 0; i <= bladeLength; i += 3) {
-      const y = -bladeLength * 0.5 + i;
+      const yy = -bladeLength * 0.5 + i;
       const progress = i / bladeLength;
       const twistShift = Math.sin(state.bladeTwist * progress) * bladeWidth * 0.12;
-      ctx.lineTo(stripeX + twistShift, y);
+      if (i === 0) ctx.moveTo(stripeX + twistShift, yy);
+      else ctx.lineTo(stripeX + twistShift, yy);
     }
     ctx.stroke();
   }
 
-  // Draw cells from top-down perspective with interconnection
-  const cellConnections = [];
-
-  // Draw cell interconnection lines first
-  ctx.strokeStyle = "rgba(165, 210, 120, 0.25)";
-  ctx.lineWidth = 0.6;
-  for (let i = 0; i < state.cells.length; i++) {
-    const cell1 = state.cells[i];
-    const cellY1 = -bladeLength * 0.5 + (cell1.positionAlongBlade * bladeLength);
-    const cellX1 = cell1.offsetFromCenter * bladeWidth * 0.4;
-
-    for (let j = i + 1; j < Math.min(i + 3, state.cells.length); j++) {
-      const cell2 = state.cells[j];
-      const cellY2 = -bladeLength * 0.5 + (cell2.positionAlongBlade * bladeLength);
-      const cellX2 = cell2.offsetFromCenter * bladeWidth * 0.4;
-
-      const distance = Math.sqrt((cellX2 - cellX1) ** 2 + (cellY2 - cellY1) ** 2);
-      if (distance < bladeWidth * 0.35) {
-        ctx.beginPath();
-        ctx.moveTo(cellX1, cellY1);
-        ctx.lineTo(cellX2, cellY2);
-        ctx.stroke();
-      }
-    }
-  }
-
-  // Draw cells
   for (let i = 0; i < state.cells.length; i++) {
     const cell = state.cells[i];
-    const cellY = -bladeLength * 0.5 + (cell.positionAlongBlade * bladeLength);
+    const cellY = -bladeLength * 0.5 + cell.positionAlongBlade * bladeLength;
     const cellX = cell.offsetFromCenter * bladeWidth * 0.4;
-
-    const cellRadius = (cell.size * 4.0) + 1.8;
-    const isSelected = state.selectedCellIndex === i;
+    const cellRadius = cell.size * 3.2 + 1.4;
     const isActive = state.activeCellIndex === i;
 
     if (isActive) {
-      ctx.fillStyle = "rgba(255, 238, 72, 0.85)";
+      ctx.fillStyle = "rgba(255, 238, 72, 0.80)";
       ctx.beginPath();
-      ctx.arc(cellX, cellY, cellRadius + 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 238, 72, 0.4)";
-      ctx.beginPath();
-      ctx.arc(cellX, cellY, cellRadius + 5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (isSelected) {
-      ctx.fillStyle = "rgba(255, 255, 160, 0.6)";
-      ctx.beginPath();
-      ctx.arc(cellX, cellY, cellRadius + 2, 0, Math.PI * 2);
+      ctx.arc(cellX, cellY, cellRadius + 4, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Cell color based on energy
-    const energyHue = cell.energy > 2 ? 92 : 88;
-    const cellOpacity = 0.3 + Math.min(cell.energy / 4.5, 1) * 0.6;
-    ctx.fillStyle = `hsla(${energyHue}, 85%, 55%, ${cellOpacity})`;
+    const cellOpacity = 0.35 + Math.min(cell.energy / 4.5, 1) * 0.55;
+    ctx.fillStyle = `hsla(92, 85%, 55%, ${cellOpacity})`;
     ctx.beginPath();
     ctx.arc(cellX, cellY, cellRadius, 0, Math.PI * 2);
     ctx.fill();
-
-    // Cell highlight
-    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.beginPath();
-    ctx.arc(cellX - cellRadius * 0.35, cellY - cellRadius * 0.35, cellRadius * 0.3, 0, Math.PI * 2);
-    ctx.fill();
   }
 
-  // Draw rotation indicator ring
-  ctx.strokeStyle = "rgba(165, 210, 120, 0.3)";
+  ctx.strokeStyle = "rgba(36, 72, 47, 0.34)";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.arc(0, 0, bladeWidth * 0.6, 0, Math.PI * 2);
   ctx.stroke();
-
-  // Draw sun rays in top-down view
-  const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
-  ctx.strokeStyle = "rgba(255, 255, 150, 0.55)";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([4, 3]);
-  for (let i = -1; i <= 1; i++) {
-    const angle = sunAngleRad + (i * Math.PI / 18);
-    const rayLength = bladeWidth * 0.8;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(Math.sin(angle) * rayLength, Math.cos(angle) * rayLength);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
   ctx.restore();
 
-  // Draw rotation angle indicator at bottom of HUD
+  ctx.fillStyle = "rgba(28, 54, 43, 0.88)";
+  ctx.font = "800 12px Manrope, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`${Math.round(getGrowthParameters().sunAlignment * 100)}% sun`, hudX + hudSize / 2, hudY + hudSize - 10);
+  ctx.restore();
+}
+
+function drawSunAlignmentMessages(w, h, params) {
+  const currentTime = performance.now() / 1000;
+  
+  // Näytä "perfect position towards sun" kun alignment on yli 92%
+  if (params.sunAlignment > 0.92) {
+    const timeSinceMessage = currentTime - state.perfectSunMessageTime;
+    if (timeSinceMessage < 2.0) {
+      const alpha = 1 - Math.min(timeSinceMessage / 2.0, 1) * 0.5;
+      const pulse = 1 + Math.sin(timeSinceMessage * 6) * 0.1;
+      
+      ctx.save();
+      ctx.font = "900 3rem Manrope, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = `rgba(255, 200, 100, ${alpha})`;
+      ctx.shadowColor = `rgba(255, 165, 0, ${alpha * 0.8})`;
+      ctx.shadowBlur = 20 * pulse;
+      ctx.fillText("🌞 PERFECT POSITION TOWARDS SUN 🌞", w * 0.5, h * 0.3);
+      ctx.font = "700 1.5rem Manrope, sans-serif";
+      ctx.fillStyle = `rgba(150, 220, 100, ${alpha * 0.9})`;
+      ctx.shadowBlur = 12 * pulse;
+      ctx.fillText("⚡ MAXIMUM GROWTH RATE ⚡", w * 0.5, h * 0.38);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  } 
+  // Näytä "turning to sun" kun alignment on 65-92%
+  else if (params.sunAlignment > 0.65) {
+    const timeSinceMessage = currentTime - state.lastSunAlignmentMessage;
+    if (timeSinceMessage < 1.2) {
+      const alpha = Math.max(0, 1 - timeSinceMessage / 1.2);
+      ctx.save();
+      ctx.font = "800 2.2rem Manrope, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = `rgba(255, 180, 80, ${alpha * 0.9})`;
+      ctx.shadowColor = `rgba(255, 140, 0, ${alpha * 0.7})`;
+      ctx.shadowBlur = 15;
+      ctx.fillText("↻ TURNING TOWARDS SUN ↻", w * 0.5, h * 0.3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  }
+}
+
+function drawEndGameAnimation(w, h) {
+  if (!state.isGameEnded) return;
+  
+  const animProgress = getScoringAnimationProgress();
+  const animatedScore = getAnimatedFinalScore();
+  
+  // Semi-transparent overlay
   ctx.save();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-  ctx.font = "700 12px Manrope, sans-serif";
-  ctx.textAlign = "center";
-  const twistDeg = Math.round((state.bladeTwist * 180) / Math.PI);
-  ctx.fillText(`TWIST ${twistDeg}°`, hudCenterX, hudY + hudSize + 16);
-
-  // Draw mini compass rose
-  const compassRadius = 10;
-  const compassX = hudX + hudSize - 16;
-  const compassY = hudY + 16;
-
-  ctx.strokeStyle = "rgba(134, 200, 91, 0.6)";
-  ctx.lineWidth = 1.2;
-
-  // Circle
-  ctx.beginPath();
-  ctx.arc(compassX, compassY, compassRadius, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Crosshair
-  ctx.beginPath();
-  ctx.moveTo(compassX - compassRadius, compassY);
-  ctx.lineTo(compassX + compassRadius, compassY);
-  ctx.moveTo(compassX, compassY - compassRadius);
-  ctx.lineTo(compassX, compassY + compassRadius);
-  ctx.stroke();
-
-  // Cardinal directions
-  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-  ctx.font = "600 10px Manrope, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  const directions = [
-    { text: "N", x: 0, y: -compassRadius - 7 },
-    { text: "E", x: compassRadius + 7, y: 0 },
-    { text: "S", x: 0, y: compassRadius + 7 },
-    { text: "W", x: -compassRadius - 7, y: 0 },
-  ];
-
-  for (const dir of directions) {
-    ctx.fillText(dir.text, compassX + dir.x, compassY + dir.y);
-  }
-
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.4 * animProgress})`;
+  ctx.fillRect(0, 0, w, h);
   ctx.restore();
+  
+  // Animated final score display
+  if (animProgress > 0.1) {
+    ctx.save();
+    ctx.font = "900 4rem Manrope, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255, 215, 0, 1)";
+    ctx.shadowColor = "rgba(255, 140, 0, 0.8)";
+    ctx.shadowBlur = 30;
+    
+    const scale = 0.8 + animProgress * 0.4;
+    ctx.save();
+    ctx.translate(w * 0.5, h * 0.35);
+    ctx.scale(scale, scale);
+    ctx.fillText("HARVEST COMPLETE", 0, 0);
+    ctx.restore();
+    
+    ctx.font = "800 3.5rem Manrope, sans-serif";
+    ctx.fillStyle = "rgba(200, 255, 100, 1)";
+    ctx.shadowColor = "rgba(100, 200, 50, 0.6)";
+    ctx.fillText(animatedScore.toLocaleString(), w * 0.5, h * 0.55);
+    
+    ctx.font = "700 1.5rem Manrope, sans-serif";
+    ctx.fillStyle = "rgba(150, 220, 100, 0.9)";
+    ctx.shadowColor = "transparent";
+    ctx.fillText("CENTIMETERS", w * 0.5, h * 0.63);
+    
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+  
+  // Show full end screen when animation is done
+  if (animProgress >= 0.99 && !state.hallRecorded) {
+    // This will be called from updateGame
+  }
+}
+
+function drawCountdownMessage(w, h) {
+  if (!state.running || state.isGameEnded || state.turn !== GAME_TURNS) return;
+  
+  const timeLeft = TURN_DURATION - state.turnTime;
+  
+  // Show countdown message 5 seconds before final month ends
+  if (timeLeft < 5 && timeLeft > 0) {
+    const pulse = 0.5 + Math.sin(timeLeft * Math.PI * 4) * 0.5;
+    const alphaIntensity = 0.6 + pulse * 0.4;
+    
+    ctx.save();
+    ctx.font = "800 2rem Manrope, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(200, 255, 150, ${alphaIntensity})`;
+    ctx.shadowColor = `rgba(100, 200, 100, ${alphaIntensity * 0.8})`;
+    ctx.shadowBlur = 15;
+    
+    ctx.fillText("📏 STRAIGHTEN FOR MEASUREMENT 📏", w * 0.5, h * 0.25);
+    
+    ctx.font = "700 1.3rem Manrope, sans-serif";
+    ctx.fillStyle = `rgba(255, 200, 100, ${alphaIntensity})`;
+    ctx.shadowColor = `rgba(255, 150, 0, ${alphaIntensity * 0.8})`;
+    ctx.fillText(`${Math.ceil(timeLeft)}s`, w * 0.5, h * 0.35);
+    
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
 }
 
 function draw() {
@@ -1551,17 +1938,53 @@ function draw() {
 
   ctx.clearRect(0, 0, w, h);
 
+  // The background must stay unscaled. Scaling it caused the visible play area
+  // to split into two separate rectangles when the camera zoomed out.
   drawBackground(w, h);
   drawSunArc(w, h);
-  drawSunRays(w, h);
+
+  const zoom = 1.0 - (state.bladeLength / MAX_BLADE_LENGTH) * 0.4;
+  const zoomCenterX = w * 0.5;
+  const zoomCenterY = h * 0.92;
+
+  ctx.save();
+  ctx.translate(zoomCenterX, zoomCenterY);
+  ctx.scale(zoom, zoom);
+  ctx.translate(-zoomCenterX, -zoomCenterY);
+
   drawCenterLine(w, h);
-  drawSunIndicator(w, h);
   drawBlade(w, h);
   drawGridLines(w, h);
 
-  if (state.running) {
-    drawHud(w, h);
-    drawTopDownHUD(w, h);
+  ctx.restore();
+
+  if (state.running || state.isGameEnded) {
+    if (state.running) {
+      const params = getGrowthParameters();
+      drawHud(w, h);
+      drawTopDownHUD(w, h);
+      drawSunAlignmentMessages(w, h, params);
+      drawCountdownMessage(w, h);
+    }
+  }
+  
+  // Draw end game animation if game has ended
+  if (state.isGameEnded) {
+    // Calculate final scores only once when game just ended
+    if (state.finalMaxHeight === 0 && state.finalEffectiveHeight === 0) {
+      state.finalMaxHeight = state.actualHeight;
+      state.finalEffectiveHeight = calculateEffectiveBladeHeight(w, h);
+      state.finalStraightness = state.straightness;
+      
+      // Record in hall of fame
+      const finalScore = Math.floor(
+        state.finalEffectiveHeight + 
+        (state.finalStraightness * state.finalStraightness * (state.finalMaxHeight * 0.1)) +
+        Math.min(state.perfectAlignmentBonus, state.finalMaxHeight * 0.05)
+      );
+    }
+    
+    drawEndGameAnimation(w, h);
   }
 }
 
@@ -1589,6 +2012,7 @@ function clearHallOfFame() {
 }
 
 function init() {
+  installLayoutFixes();
   setStartMode(true);
   renderHallOfFame();
   showStartScreen();
@@ -1636,14 +2060,6 @@ function init() {
   });
 
   fullscreenBtn.addEventListener("click", toggleFullscreen);
-
-  menuToggleBtn.addEventListener("click", () => {
-    hallPanel.hidden = !hallPanel.hidden;
-  });
-
-  decorateBtn.disabled = true;
-  screenshotBtn.disabled = true;
-  shareBtn.disabled = true;
 
   window.requestAnimationFrame((timestamp) => {
     state.lastTimestamp = timestamp;
