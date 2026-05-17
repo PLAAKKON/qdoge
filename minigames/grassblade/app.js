@@ -113,7 +113,7 @@ function installLayoutFixes() {
       height:100% !important;
       display:block !important;
       background:transparent !important;
-      touch-action:none !important;
+      touch-action:manipulation !important;
     }
 
     /* Overlay fills screen but keeps tiny safety padding */
@@ -2454,25 +2454,30 @@ canvas.addEventListener("touchend", (e) => {
 
   const dx = t.clientX - touchStartX;
   const dy = t.clientY - touchStartY;
-  const tapDuration = Date.now() - touchStartTime;
 
-  const tapMoveLimit = 20;
-  const swipeThreshold = 40;
+  const absX = Math.abs(dx);
+  const absY = Math.abs(dy);
 
-  // kevyt näpäys = seuraava solu samalla rivillä
+  const tapDuration =
+    Date.now() - touchStartTime;
+
+  const TAP_LIMIT = 14;
+  const SWIPE_LIMIT = 28;
+
+  // NAPAUTUS
   if (
-    Math.abs(dx) < tapMoveLimit &&
-    Math.abs(dy) < tapMoveLimit &&
-    tapDuration < 250
+    absX < TAP_LIMIT &&
+    absY < TAP_LIMIT &&
+    tapDuration < 220
   ) {
     cycleRowCell(1);
     return;
   }
 
-  // vaakapyyhkäisy
+  // VAAKA
   if (
-    Math.abs(dx) > swipeThreshold &&
-    Math.abs(dx) > Math.abs(dy)
+    absX > SWIPE_LIMIT &&
+    absX > absY
   ) {
     if (dx > 0) {
       moveSelectionSide(1);
@@ -2482,15 +2487,20 @@ canvas.addEventListener("touchend", (e) => {
     return;
   }
 
-  // pystypyyhkäisy
-  if (Math.abs(dy) > swipeThreshold) {
+  // PYSTY
+  if (
+    absY > SWIPE_LIMIT &&
+    absY > absX
+  ) {
     if (dy < 0) {
       moveSelectionByRow(1);
     } else {
       moveSelectionByRow(-1);
     }
+
+    return;
   }
-}, { passive: true });
+}, { passive:true });
 
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
