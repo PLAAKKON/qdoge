@@ -178,6 +178,27 @@ function installLayoutFixes() {
       max-width:calc(100vw - 12px) !important;
       overflow:auto !important;
     }
+	
+	body.ios-fake-fullscreen {
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100dvh;
+  overflow:hidden;
+}
+
+body.ios-fake-fullscreen #gameContainer{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  z-index:9999 !important;
+}
+
+body.ios-fake-fullscreen #grassCanvas{
+  width:100vw !important;
+  height:100dvh !important;
+}
   `;
 
   document.head.appendChild(style);
@@ -405,32 +426,47 @@ function startGame() {
 
 function generateCellLattice() {
   state.cells = [];
+
   for (let row = 0; row < CELL_ROWS; row++) {
     const progress = (row + 0.5) / CELL_ROWS;
-    const usableColumns = CELL_COLUMNS;
 
-    for (let col = 0; col < usableColumns; col++) {
-      const center = (usableColumns - 1) / 2;
-      const normalizedCol = (col - center) / center;
+    for (let col = 0; col < CELL_COLUMNS; col++) {
 
-      const offsetFromCenter = clamp(normalizedCol, -1, 1);
+      const center=(CELL_COLUMNS-1)/2;
+      const normalizedCol=(col-center)/center;
 
-      const baseQuality =
-        0.68 +
-        (1 - Math.abs(offsetFromCenter)) * 0.18 +
-        progress * 0.08;
+      const offsetFromCenter=
+        clamp(normalizedCol,-1,1);
+
+      const baseQuality=
+        0.68+
+        (1-Math.abs(offsetFromCenter))*0.18+
+        progress*0.08;
 
       state.cells.push({
+
         row,
         col,
         progress,
-        positionAlongBlade: progress,
+
+        positionAlongBlade:progress,
         offsetFromCenter,
-        quality: clamp(baseQuality, 0.55, 1),
-        energy: 0,
-        size: 1.15 + progress * 0.2,
-        division: 0,
-        isStrong: baseQuality > 0.82,
+
+        quality:clamp(
+          baseQuality,
+          0.55,
+          1
+        ),
+
+        energy:0,
+        size:1.15+progress*0.2,
+        division:0,
+
+        isStrong:
+          baseQuality>0.82,
+
+        // uusi
+        leafOpened:false
       });
     }
   }
@@ -840,24 +876,38 @@ function getGrowthParameters() {
 function updateCellGrowth(dt) {
   const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
   const active = getActiveCell();
+
   if (!active) return 0;
 
   let totalActivation = 0;
 
   for (const cell of state.cells) {
-    const exposure = getLightExposure(cell, cell.positionAlongBlade, sunAngleRad);
+    const exposure = getLightExposure(
+      cell,
+      cell.positionAlongBlade,
+      sunAngleRad
+    );
+
     const activeInfluence = getActiveInfluence(cell);
 
-    const passivePhotosynthesis = exposure * cell.quality * 0.006 * dt;
+    const passivePhotosynthesis =
+      exposure * cell.quality * 0.006 * dt;
+
     const activeGrowth =
       exposure *
       cell.quality *
       smootherstep(activeInfluence) *
       0.575 *
       dt;
-    const sunHitBonus = exposure * exposure * 0.008 * dt;
 
-    cell.energy += passivePhotosynthesis + activeGrowth + sunHitBonus;
+    const sunHitBonus =
+      exposure * exposure * 0.008 * dt;
+
+    cell.energy +=
+      passivePhotosynthesis +
+      activeGrowth +
+      sunHitBonus;
+
     cell.energy = clamp(cell.energy, 0, 4.5);
 
     cell.size = clamp(
@@ -871,6 +921,19 @@ function updateCellGrowth(dt) {
       0,
       1
     );
+
+    // Kun lehti avautuu ensimmäisen kerran, anna +10 cm
+    if ((cell.energy / 4.5) > 0.65 && !cell.leafOpened) {
+      cell.leafOpened = true;
+
+      state.bladeLength = clamp(
+        state.bladeLength + 10 / 26,
+        0,
+        MAX_BLADE_LENGTH
+      );
+
+      navigator.vibrate?.(25);
+    }
 
     totalActivation += activeGrowth;
   }
@@ -1157,62 +1220,100 @@ function handleKeyboard(event) {
   if (!state.running || state.cells.length === 0) return;
 
   if (event.key === "ArrowLeft") {
-    state.selectedCellIndex = Math.max(0, state.selectedCellIndex - 1);
-    state.activeCellIndex = state.selectedCellIndex;
+    moveSelectionSide(-1);
     event.preventDefault();
+
   } else if (event.key === "ArrowRight") {
-    state.selectedCellIndex = Math.min(state.cells.length - 1, state.selectedCellIndex + 1);
-    state.activeCellIndex = state.selectedCellIndex;
+    moveSelectionSide(1);
     event.preventDefault();
+
   } else if (event.key === "ArrowUp") {
-    const current = state.cells[state.selectedCellIndex];
-    if (!current) return;
-
-    let bestIndex = state.selectedCellIndex;
-    let bestDistance = Infinity;
-
-    for (let i = 0; i < state.cells.length; i++) {
-      const cell = state.cells[i];
-      if (cell.positionAlongBlade <= current.positionAlongBlade) continue;
-
-      const d =
-        Math.abs(cell.offsetFromCenter - current.offsetFromCenter) +
-        Math.abs(cell.positionAlongBlade - current.positionAlongBlade) * 2;
-
-      if (d < bestDistance) {
-        bestDistance = d;
-        bestIndex = i;
-      }
-    }
-
-    state.selectedCellIndex = bestIndex;
-    state.activeCellIndex = bestIndex;
+    moveSelectionByRow(1);
     event.preventDefault();
+
   } else if (event.key === "ArrowDown") {
-    const current = state.cells[state.selectedCellIndex];
-    if (!current) return;
-
-    let bestIndex = state.selectedCellIndex;
-    let bestDistance = Infinity;
-
-    for (let i = 0; i < state.cells.length; i++) {
-      const cell = state.cells[i];
-      if (cell.positionAlongBlade >= current.positionAlongBlade) continue;
-
-      const d =
-        Math.abs(cell.offsetFromCenter - current.offsetFromCenter) +
-        Math.abs(cell.positionAlongBlade - current.positionAlongBlade) * 2;
-
-      if (d < bestDistance) {
-        bestDistance = d;
-        bestIndex = i;
-      }
-    }
-
-    state.selectedCellIndex = bestIndex;
-    state.activeCellIndex = bestIndex;
+    moveSelectionByRow(-1);
     event.preventDefault();
   }
+}
+
+function moveSelectionByRow(direction) {
+  const current = state.cells[state.selectedCellIndex];
+  if (!current) return;
+
+  let bestIndex = state.selectedCellIndex;
+  let bestScore = Infinity;
+
+  for (let i = 0; i < state.cells.length; i++) {
+    const cell = state.cells[i];
+
+    if (direction > 0 && cell.row <= current.row) continue;
+    if (direction < 0 && cell.row >= current.row) continue;
+
+    const rowDistance = Math.abs(cell.row - current.row);
+    const colDistance = Math.abs(cell.col - current.col);
+    const score = rowDistance * 10 + colDistance;
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
+
+  state.selectedCellIndex = bestIndex;
+  state.activeCellIndex = bestIndex;
+  navigator.vibrate?.(10);
+}
+
+function moveSelectionSide(direction) {
+  const current = state.cells[state.selectedCellIndex];
+  if (!current) return;
+
+  let bestIndex = state.selectedCellIndex;
+  let bestScore = Infinity;
+
+  for (let i = 0; i < state.cells.length; i++) {
+    const cell = state.cells[i];
+
+    if (cell.row !== current.row) continue;
+    if (direction > 0 && cell.col <= current.col) continue;
+    if (direction < 0 && cell.col >= current.col) continue;
+
+    const distance = Math.abs(cell.col - current.col);
+
+    if (distance < bestScore) {
+      bestScore = distance;
+      bestIndex = i;
+    }
+  }
+
+  state.selectedCellIndex = bestIndex;
+  state.activeCellIndex = bestIndex;
+  navigator.vibrate?.(10);
+}
+
+function cycleRowCell(direction = 1) {
+  const current = state.cells[state.selectedCellIndex];
+  if (!current) return;
+
+  const rowCells = state.cells
+    .map((cell, index) => ({ cell, index }))
+    .filter(x => x.cell.row === current.row)
+    .sort((a, b) => a.cell.col - b.cell.col);
+
+  const currentPos = rowCells.findIndex(
+    x => x.index === state.selectedCellIndex
+  );
+
+  if (currentPos === -1) return;
+
+  const nextPos =
+    (currentPos + direction + rowCells.length) % rowCells.length;
+
+  state.selectedCellIndex = rowCells[nextPos].index;
+  state.activeCellIndex = state.selectedCellIndex;
+
+  navigator.vibrate?.(10);
 }
 
 function drawBackground(w, h) {
@@ -2186,41 +2287,54 @@ function drawSunAlignmentMessages(w, h, params) {
 
 function drawEndGameAnimation(w, h) {
   if (!state.isGameEnded) return;
-  
+
   const animProgress = getScoringAnimationProgress();
   const animatedScore = getAnimatedFinalScore();
-  
+
+  const titleFont = Math.max(24, Math.min(52, w * 0.085));
+  const scoreFont = Math.max(42, Math.min(72, w * 0.14));
+  const labelFont = Math.max(16, Math.min(24, w * 0.045));
+
+  const centerX = w * 0.5;
+  const centerY = h * 0.5;
+
   ctx.save();
   ctx.fillStyle = `rgba(0, 0, 0, ${0.4 * animProgress})`;
   ctx.fillRect(0, 0, w, h);
   ctx.restore();
-  
+
   if (animProgress > 0.1) {
     ctx.save();
-    ctx.font = "900 4rem Manrope, sans-serif";
     ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const scale = 0.85 + animProgress * 0.25;
+
+    ctx.save();
+    ctx.translate(centerX, centerY - 95);
+    ctx.scale(scale, scale);
+
+    ctx.font = `900 ${titleFont}px Manrope, sans-serif`;
     ctx.fillStyle = "rgba(255, 215, 0, 1)";
     ctx.shadowColor = "rgba(255, 140, 0, 0.8)";
-    ctx.shadowBlur = 30;
-    
-    const scale = 0.8 + animProgress * 0.4;
-    ctx.save();
-    ctx.translate(w * 0.5, h * 0.35);
-    ctx.scale(scale, scale);
-    ctx.fillText("HARVEST COMPLETE", 0, 0);
+    ctx.shadowBlur = 24;
+    ctx.fillText("HARVEST", 0, -titleFont * 0.42);
+    ctx.fillText("COMPLETE", 0, titleFont * 0.62);
+
     ctx.restore();
-    
-    ctx.font = "800 3.5rem Manrope, sans-serif";
+
+    ctx.font = `800 ${scoreFont}px Manrope, sans-serif`;
     ctx.fillStyle = "rgba(200, 255, 100, 1)";
     ctx.shadowColor = "rgba(100, 200, 50, 0.6)";
-    ctx.fillText(animatedScore.toLocaleString(), w * 0.5, h * 0.55);
-    
-    ctx.font = "700 1.5rem Manrope, sans-serif";
+    ctx.shadowBlur = 24;
+    ctx.fillText(animatedScore.toLocaleString(), centerX, centerY + 20);
+
+    ctx.font = `700 ${labelFont}px Manrope, sans-serif`;
     ctx.fillStyle = "rgba(150, 220, 100, 0.9)";
     ctx.shadowColor = "transparent";
-    ctx.fillText("CENTIMETERS", w * 0.5, h * 0.63);
-    
     ctx.shadowBlur = 0;
+    ctx.fillText("CENTIMETERS", centerX, centerY + 75);
+
     ctx.restore();
   }
 }
@@ -2320,17 +2434,93 @@ function loop(timestamp) {
   window.requestAnimationFrame(loop);
 }
 
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+  if (!state.running) return;
+
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+canvas.addEventListener("touchend", (e) => {
+  if (!state.running) return;
+
+  const t = e.changedTouches[0];
+
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const tapDuration = Date.now() - touchStartTime;
+
+  const tapMoveLimit = 20;
+  const swipeThreshold = 40;
+
+  // kevyt näpäys = seuraava solu samalla rivillä
+  if (
+    Math.abs(dx) < tapMoveLimit &&
+    Math.abs(dy) < tapMoveLimit &&
+    tapDuration < 250
+  ) {
+    cycleRowCell(1);
+    return;
+  }
+
+  // vaakapyyhkäisy
+  if (
+    Math.abs(dx) > swipeThreshold &&
+    Math.abs(dx) > Math.abs(dy)
+  ) {
+    if (dx > 0) {
+      moveSelectionSide(1);
+    } else {
+      moveSelectionSide(-1);
+    }
+    return;
+  }
+
+  // pystypyyhkäisy
+  if (Math.abs(dy) > swipeThreshold) {
+    if (dy < 0) {
+      moveSelectionByRow(1);
+    } else {
+      moveSelectionByRow(-1);
+    }
+  }
+}, { passive: true });
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function toggleFullscreen() {
-  const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-  
+  const container = document.getElementById("gameContainer") || canvas.parentElement;
+
+  // iPhone / iOS fallback
+  if (isIOS()) {
+  document.body.classList.toggle("ios-fake-fullscreen");
+
+  setTimeout(() => {
+    ensureCanvasSize();
+    draw();
+  }, 120);
+
+  return;
+}
+
+  const fullscreenElement =
+    document.fullscreenElement ||
+    document.webkitFullscreenElement;
+
   if (!fullscreenElement) {
-    const container = document.getElementById("gameContainer") || canvas.parentElement;
     if (container.requestFullscreen) {
       container.requestFullscreen();
     } else if (container.webkitRequestFullscreen) {
       container.webkitRequestFullscreen();
-    } else if (canvas.requestFullscreen) {
-      canvas.requestFullscreen();
     }
   } else {
     if (document.exitFullscreen) {
@@ -2368,12 +2558,23 @@ function init() {
     draw();
   });
 
-  canvas.addEventListener("pointerdown", handleCanvasPointer);
+  canvas.addEventListener("pointerdown", (event) => {
+  if (event.pointerType === "touch") return;
+  handleCanvasPointer(event);
+});
+  
   canvas.addEventListener("pointermove", (event) => {
     if ((event.buttons || event.pointerType === "touch" || event.pointerType === "pen") && state.running) {
       handleCanvasPointer(event);
     }
   });
+  
+  window.addEventListener("orientationchange", () => {
+  setTimeout(() => {
+    ensureCanvasSize();
+    draw();
+  }, 250);
+});
 
   window.addEventListener("keydown", handleKeyboard);
   if (resetBtn) resetBtn.addEventListener("click", startGame);
