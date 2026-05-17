@@ -1182,14 +1182,14 @@ function getCellScreenPosition(cell, path) {
 }
 
 function pickClosestCell(positionX, positionY, width, height) {
-  if (state.cells.length === 0) return 0;
+  if (state.cells.length === 0) return -1;
 
   const baseX = width * 0.5;
   const baseY = height * 0.92;
   const lengthPx = 130 + state.bladeLength * 26;
   const path = getBladePath(baseX, baseY, lengthPx);
 
-  let bestIndex = 0;
+  let bestIndex = -1;
   let bestDistance = Infinity;
 
   for (let i = 0; i < state.cells.length; i++) {
@@ -1200,7 +1200,7 @@ function pickClosestCell(positionX, positionY, width, height) {
     const dy = pos.y - positionY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance < bestDistance && distance < 46) {
+    if (distance < bestDistance && distance < 52) {
       bestDistance = distance;
       bestIndex = i;
     }
@@ -1213,6 +1213,7 @@ function handleCanvasPointer(event) {
   if (!state.running) return;
 
   event.preventDefault?.();
+
   const rect = canvas.getBoundingClientRect();
 
   let x = event.clientX - rect.left;
@@ -1225,8 +1226,12 @@ function handleCanvasPointer(event) {
   x = zoomCenterX + (x - zoomCenterX) / zoom;
   y = zoomCenterY + (y - zoomCenterY) / zoom;
 
-  state.selectedCellIndex = pickClosestCell(x, y, rect.width, rect.height);
-  state.activeCellIndex = state.selectedCellIndex;
+  const pickedIndex = pickClosestCell(x, y, rect.width, rect.height);
+
+  if (pickedIndex === -1) return;
+
+  state.selectedCellIndex = pickedIndex;
+  state.activeCellIndex = pickedIndex;
 }
 
 function handleKeyboard(event) {
@@ -2471,40 +2476,66 @@ canvas.addEventListener("touchend", (e) => {
   const absX = Math.abs(dx);
   const absY = Math.abs(dy);
 
-  const tapDuration =
-    Date.now() - touchStartTime;
+  const tapDuration = Date.now() - touchStartTime;
 
-  const TAP_LIMIT = 14;
-  const SWIPE_LIMIT = 28;
+  const TAP_LIMIT = 16;
+  const SWIPE_LIMIT = 32;
 
-  // NAPAUTUS
+  // Kevyt napautus
   if (
     absX < TAP_LIMIT &&
     absY < TAP_LIMIT &&
-    tapDuration < 220
+    tapDuration < 240
   ) {
-    cycleRowCell(1);
+    const rect = canvas.getBoundingClientRect();
+
+    let x = t.clientX - rect.left;
+    let y = t.clientY - rect.top;
+
+    const zoom = 1.0 - (state.bladeLength / MAX_BLADE_LENGTH) * 0.4;
+    const zoomCenterX = rect.width * 0.5;
+    const zoomCenterY = rect.height * 0.92;
+
+    x = zoomCenterX + (x - zoomCenterX) / zoom;
+    y = zoomCenterY + (y - zoomCenterY) / zoom;
+
+    const pickedIndex = pickClosestCell(x, y, rect.width, rect.height);
+
+    if (pickedIndex === -1) return;
+
+    const pickedCell = state.cells[pickedIndex];
+    const currentCell = state.cells[state.selectedCellIndex];
+
+    if (!pickedCell || !currentCell) return;
+
+    // Jos napautat samaa solutasoa, vaihdetaan seuraavaan soluun
+    if (pickedCell.row === currentCell.row) {
+      cycleRowCell(1);
+    }
+
+    // Jos napautat eri solutasoa, valitaan suoraan se solu
+    else {
+      state.selectedCellIndex = pickedIndex;
+      state.activeCellIndex = pickedIndex;
+      navigator.vibrate?.(10);
+    }
+
     return;
   }
 
-  // VAAKA
-  if (
-    absX > SWIPE_LIMIT &&
-    absX > absY
-  ) {
+  // Vaakasuuntainen pyyhkäisy
+  if (absX > SWIPE_LIMIT && absX > absY) {
     if (dx > 0) {
       moveSelectionSide(1);
     } else {
       moveSelectionSide(-1);
     }
+
     return;
   }
 
-  // PYSTY
-  if (
-    absY > SWIPE_LIMIT &&
-    absY > absX
-  ) {
+  // Pystysuuntainen pyyhkäisy
+  if (absY > SWIPE_LIMIT && absY > absX) {
     if (dy < 0) {
       moveSelectionByRow(1);
     } else {
@@ -2513,7 +2544,7 @@ canvas.addEventListener("touchend", (e) => {
 
     return;
   }
-}, { passive:true });
+}, { passive: true });
 
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
