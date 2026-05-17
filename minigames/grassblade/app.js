@@ -116,24 +116,25 @@ function installLayoutFixes() {
       touch-action:manipulation !important;
     }
 
-    /* Overlay fills screen but keeps tiny safety padding */
     .overlay-message{
-      width:100vw !important;
-      max-width:100vw !important;
-      padding:6px !important;
-      box-sizing:border-box !important;
-      overflow:hidden !important;
-    }
+		width:100vw !important;
+		max-width:100vw !important;
+		height:100dvh !important;
+		max-height:100dvh !important;
+		padding:6px !important;
+		box-sizing:border-box !important;
+		overflow-y:auto !important;
+		-webkit-overflow-scrolling:touch !important;
+	}
 
-    /* Start screen uses almost full mobile width */
     .start-screen-inner{
-      width:calc(100vw - 12px) !important;
-      max-width:560px !important;
-      margin:0 auto !important;
-      padding:10px !important;
-      box-sizing:border-box !important;
-      overflow:hidden !important;
-    }
+		width:calc(100vw - 12px) !important;
+		max-width:560px !important;
+		margin:0 auto !important;
+		padding:10px !important;
+		box-sizing:border-box !important;
+		overflow:visible !important;
+	}
 
     .hero-copy,
     .start-actions,
@@ -533,9 +534,21 @@ function showEndScreen() {
   `;
 
   document.getElementById("newGameBtn").addEventListener("click", startGame);
-  document.getElementById("highscoresBtn").addEventListener("click", () => toggleHallPanel(true));
-  document.getElementById("settingsBtn").addEventListener("click", () => showStartScreen());
-  setStartMode(true);
+document.getElementById("highscoresBtn").addEventListener("click", () => toggleHallPanel(true));
+document.getElementById("settingsBtn").addEventListener("click", () => showStartScreen());
+
+setTimeout(() => {
+  const newGameBtn = document.getElementById("newGameBtn");
+
+  if (newGameBtn) {
+    newGameBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      startGame();
+    }, { passive: false });
+  }
+}, 0);
+
+setStartMode(true);
 }
 
 function endGame() {
