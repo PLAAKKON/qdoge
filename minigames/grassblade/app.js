@@ -150,11 +150,12 @@ function installLayoutFixes() {
     /* GRASSBLADE title fix */
     .hero-copy h1{
       margin:0 0 10px 0 !important;
-      font-size:clamp(2.2rem,11vw,4.8rem) !important;
+      font-size:clamp(1.8rem,9.2vw,4.8rem) !important;
       line-height:0.95 !important;
       max-width:100% !important;
-      overflow-wrap:anywhere !important;
-      word-break:break-word !important;
+      white-space:nowrap !important;
+      overflow-wrap:normal !important;
+      word-break:normal !important;
     }
 
     .start-actions{
