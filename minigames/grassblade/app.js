@@ -560,7 +560,10 @@ function showEndScreen() {
   `;
 
   document.getElementById("newGameBtn")?.addEventListener("click", startGame);
-  document.getElementById("highscoresBtn")?.addEventListener("click", showHighScoresScreen);
+  document.getElementById("highscoresBtn")?.addEventListener(
+  "click",
+  () => toggleHallPanel(true)
+);
   document.getElementById("settingsBtn")?.addEventListener("click", showStartScreen);
 
   setStartMode(true);
