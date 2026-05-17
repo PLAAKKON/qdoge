@@ -22,7 +22,6 @@ const state = {
   bladeAngularVelocity: 0,
   localBendStrength: 0,
   localBendVelocity: 0,
-  // Lisätty uudet state-muuttujat
   localBendCenter: 0.45,
   localBendWidth: 0.24,
   bladeTwist: 0,
@@ -74,7 +73,6 @@ function installLayoutFixes() {
   const style = document.createElement("style");
   style.id = "grassblade-layout-fixes";
   style.textContent = `
-    /* Remove the extra mouse-control strip at the bottom. */
     .mouse-control-panel,
     .mouse-panel,
     .control-panel,
@@ -95,6 +93,14 @@ function installLayoutFixes() {
       pointer-events: none !important;
     }
 
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
     #grassCanvas {
       width: 100% !important;
       height: 100% !important;
@@ -102,10 +108,37 @@ function installLayoutFixes() {
       background: transparent !important;
       touch-action: none !important;
     }
+
+    .overlay-message {
+      box-sizing: border-box !important;
+      max-width: 100vw !important;
+      padding: 12px !important;
+    }
+
+    .start-screen-inner {
+      width: 92% !important;
+      max-width: 480px !important;
+      box-sizing: border-box !important;
+      margin: 0 auto !important;
+    }
+
+    .start-actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      justify-content: center !important;
+      width: 100% !important;
+    }
+
+    .btn {
+      padding: 10px 14px !important;
+      font-size: clamp(0.8rem, 3.5vw, 1.1rem) !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
   `;
   document.head.appendChild(style);
 }
-
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -128,14 +161,10 @@ function normalizeAngle(angle) {
 }
 
 function constrainSunToNorthernHemisphere(angleDeg) {
-  // Sun stays between 270° (west), 0° (north), and 90° (east)
-  // Forbidden zone: 90° to 270° (eastern to southern to western below)
   let angle = angleDeg % 360;
   if (angle < 0) angle += 360;
   
-  // If in forbidden zone (90-270), wrap it back
   if (angle > 90 && angle < 270) {
-    // Clamp to nearest boundary
     if (angle < 180) {
       angle = 90;
     } else {
@@ -298,7 +327,6 @@ function startGame() {
   state.bladeAngularVelocity = 0;
   state.localBendStrength = 0;
   state.localBendVelocity = 0;
-  // Lisätty resetointi uusille muuttujille
   state.localBendCenter = 0.45;
   state.localBendWidth = 0.24;
   state.bladeTwist = 0;
@@ -336,9 +364,6 @@ function startGame() {
 function generateCellLattice() {
   state.cells = [];
 
-  // Every row keeps 5 selectable cells so the twist logic is clear:
-  // left edge = strong left twist, inner left = mild left twist,
-  // center = straight, inner right = mild right twist, right edge = strong right twist.
   for (let row = 0; row < CELL_ROWS; row++) {
     const progress = (row + 0.5) / CELL_ROWS;
     const usableColumns = CELL_COLUMNS;
@@ -390,7 +415,6 @@ function getInitialActiveCellIndex() {
 }
 
 function showEndScreen() {
-  // Calculate final score with bonuses
   const animatedScore = getAnimatedFinalScore();
   
   const hallOfFameScores = loadHallOfFame();
@@ -477,18 +501,15 @@ function getSurfaceNormal(cell, progress) {
   const active = getActiveCell();
 
   if (active) {
-    // Käytetään state-olioon tallennettuja dynaamisia arvoja
     const center = state.localBendCenter ?? active.positionAlongBlade;
     const radius = state.localBendWidth ?? 0.24;
 
     const distance = progress - center;
 
-    // Lasketaan vaikutusalue (vaikuttaa symmetrisesti keskipisteen ympärillä)
     const radiusInfluence = smootherstep(
       clamp(1 - Math.abs(distance) / radius, 0, 1)
     );
 
-    // "Above carry": Taivutus jatkuu keskipisteestä ylöspäin kärkeä kohti
     const aboveCarry =
       progress >= center
         ? smootherstep(
@@ -496,7 +517,6 @@ function getSurfaceNormal(cell, progress) {
           )
         : 0;
 
-    // "Below softness": Pieni siirtymä alaspäin, jotta tyvi ei katkea visuaalisesti
     const belowSoftness =
       progress < center
         ? smootherstep(
@@ -521,7 +541,6 @@ function getSurfaceNormal(cell, progress) {
   );
 }
 
-// --- MUUT FUNKTIOT (Ennallaan) ---
 function getLightExposure(cell, progress, sunAngleRad) {
   const surfaceNormal = getSurfaceNormal(cell, progress);
   const incidence = Math.cos(normalizeAngle(sunAngleRad - surfaceNormal));
@@ -572,7 +591,6 @@ function getGrowthWeightedCurve(progress) {
   return influence;
 }
 
-// --- KORJATTU FUNKTIO: getBladePath ---
 function getBladePath(baseX, baseY, lengthPx) {
   const points = [];
   let x = baseX;
@@ -599,7 +617,6 @@ function getBladePath(baseX, baseY, lengthPx) {
     const active = getActiveCell();
     let localBend = 0;
 
-    // --- UUSI BEND-LOGIIKKA PATH-LASKENTAAN ---
     if (active) {
       const center = state.localBendCenter ?? active.positionAlongBlade;
       const radius = state.localBendWidth ?? 0.24;
@@ -618,7 +635,7 @@ function getBladePath(baseX, baseY, lengthPx) {
       localBend =
         state.localBendStrength *
         (
-          radiusInfluence * 0.055 + // Pienemmät kertoimet path-geometriaan
+          radiusInfluence * 0.055 + 
           aboveCarry * 0.045 +
           belowSoftness * 0.035
         );
@@ -661,7 +678,6 @@ function sampleBladePath(points, progress) {
 }
 
 function calculateBladeStraightness() {
-  // Calculate straightness by counting cells on left vs right side
   let leftCells = 0;
   let rightCells = 0;
 
@@ -673,16 +689,14 @@ function calculateBladeStraightness() {
     }
   }
 
-  // Straightness: 0 if heavily skewed, 1 if perfectly balanced
   const total = leftCells + rightCells;
   if (total === 0) return 1;
 
   const ratio = Math.min(leftCells, rightCells) / Math.max(leftCells, rightCells);
-  return ratio; // 0 to 1, where 1 is perfectly balanced
+  return ratio;
 }
 
 function calculateEffectiveBladeHeight(w, h) {
-  // Calculate the effective height considering blade angle and twist
   const baseX = w * 0.5;
   const baseY = h * 0.92;
   const lengthPx = 130 + state.bladeLength * 26;
@@ -693,25 +707,19 @@ function calculateEffectiveBladeHeight(w, h) {
   const tip = path[path.length - 1];
   const groundY = baseY;
   
-  // Actual vertical height from tip position
   const heightPx = Math.max(0, groundY - tip.y);
   return Math.round(heightPx * 0.15);
 }
 
 function calculateFinalScore(w, h) {
-  // Maximum possible points = blade length in cm
   const maxHeight = state.actualHeight;
   
-  // Current effective height (reduced if blade is tilted)
   const effectiveHeight = calculateEffectiveBladeHeight(w, h);
   
-  // Base score from effective height
   const baseScore = Math.max(0, effectiveHeight);
   
-  // Straightness bonus: up to 10% of max height for perfect straightness
   const straightnessBonus = state.straightness * state.straightness * (maxHeight * 0.1);
   
-  // Total score
   const totalScore = Math.floor(baseScore + straightnessBonus);
   
   return totalScore;
@@ -733,13 +741,9 @@ function getGrowthParameters() {
 
   const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
 
-  // LOOGINEN OHJAUS: Käytetään solun offsetia suoraan ilman kääntämistä (inverse).
-  // Vasen reuna (negatiivinen) -> kääntyy vasemmalle.
-  // Oikea reuna (positiivinen) -> kääntyy oikealle.
   const directBend = activeCell.offsetFromCenter;
   const activeStrength = clamp(0.5 + activeCell.energy * 0.08, 0.5, 1.6);
 
-  // Juuren hallinta (rootControl)
   const rootControl = activeCell.positionAlongBlade < 0.3 
     ? clamp(1.05 - activeCell.positionAlongBlade * 3.0, 0, 1.0) 
     : 0; 
@@ -750,7 +754,6 @@ function getGrowthParameters() {
     1.35
   );
 
-  // Päivitetään taivutuksen keskipiste ja leveys
   state.localBendCenter = activeCell.positionAlongBlade;
   state.localBendWidth = lerp(0.34, 0.16, activeCell.positionAlongBlade);
 
@@ -797,7 +800,6 @@ function getGrowthParameters() {
     cell: activeCell,
     growthScale,
     targetTwist,
-    // Paikallinen taivutus noudattaa nyt samaa suoraa directBend-suuntaa
     localBendTarget: clamp(directBend * activeStrength * 1.15, -1.2, 1.2),
   };
 }
@@ -847,29 +849,23 @@ function updateCellGrowth(dt) {
 }
 
 function updateSunAlignmentMessages(params, currentTime) {
-  // Check for perfect perpendicular alignment (kasvi kohtisuoraan aurinkoa)
   if (params.sunAlignment > 0.95) {
-    // Perfect alignment bonus: track how long kasvi has been perpendicular
     if (!state.lastPerfectAlignmentStart) {
       state.lastPerfectAlignmentStart = currentTime;
     }
     const perfectDuration = currentTime - state.lastPerfectAlignmentStart;
-    // Award bonus for every 0.5 seconds of perfect alignment (max once per turn)
     if (perfectDuration > 0.5 && perfectDuration < TURN_DURATION - 0.1) {
-      state.perfectAlignmentBonus += state.finalMaxHeight * 0.05; // +5% bonus
-      state.lastPerfectAlignmentStart = currentTime; // Reset for next bonus opportunity
+      state.perfectAlignmentBonus += state.finalMaxHeight * 0.05; 
+      state.lastPerfectAlignmentStart = currentTime; 
     }
   } else {
     state.lastPerfectAlignmentStart = null;
   }
   
-  // Näytä "perfect position towards sun" kun alignment on yli 92%
   if (params.sunAlignment > 0.92) {
-    // Näytä viesti 1 sekunnin väliajoin
     if (currentTime - state.lastSunAlignmentMessage > 1.0) {
       state.lastSunAlignmentMessage = currentTime;
       
-      // Näytä "perfect position" kun alignment on lähes täydellinen
       if (params.sunAlignment > 0.92) {
         state.showingPerfectSunMessage = true;
         state.perfectSunMessageTime = currentTime;
@@ -881,7 +877,7 @@ function updateSunAlignmentMessages(params, currentTime) {
 function getScoringAnimationProgress() {
   if (!state.isGameEnded) return 0;
   const elapsed = performance.now() / 1000 - state.gameEndTime;
-  const duration = 3.5; // 3.5 sekuntia animaatiolle
+  const duration = 3.5; 
   const progress = Math.min(elapsed / duration, 1);
   return smootherstep(progress);
 }
@@ -894,7 +890,6 @@ function getAnimatedFinalScore() {
 
 function updateGame(dt) {
   if (state.isGameEnded) {
-    // Game is frozen, just check if end screen should be shown.
     const animProgress = getScoringAnimationProgress();
 
     if (animProgress >= 1 && !state.endScreenShown) {
@@ -914,20 +909,16 @@ function updateGame(dt) {
   const params = getGrowthParameters();
   const currentTime = performance.now() / 1000;
   
-  // Update sun alignment messages
   updateSunAlignmentMessages(params, currentTime);
   
   const activationGrowth = updateCellGrowth(dt);
 
-  // Base/root tilt: only strong when low cells are selected.
   state.bladeAngularVelocity +=
     (params.targetAngle - state.bladeAngle) * 0.72 * dt;
 
   state.bladeAngularVelocity *= 0.9;
   state.bladeAngle += state.bladeAngularVelocity * dt;
 
-  // Local bend: selected middle/top cells create a curve near their own height
-  // instead of rotating the whole blade from the root.
   state.localBendVelocity +=
     ((params.localBendTarget || 0) - state.localBendStrength) * 2.4 * dt;
 
@@ -950,27 +941,20 @@ function updateGame(dt) {
     MAX_BLADE_LENGTH
   );
 
-  // Calculate straightness and actual height
   state.straightness = calculateBladeStraightness();
-  // Approximate actual height from blade length: base + length * scaling factor
   state.actualHeight = Math.round((130 + state.bladeLength * 26) * 0.15);
 
-  // --- LEHTIBONUS JA PISTEYTYS ---
-  
-  // Lasketaan kuinka monta sivuversoa (lehteä) on kasvanut (raja 0.65)
   const leafCount = state.cells.filter(c => (c.energy / 4.5) > 0.65).length;
   const leafBonusScore = leafCount * 10; 
 
-  // Scoring system: height as base, with bonuses and penalties
   const heightBonus = state.actualHeight * 1.2;
-  const straightnessBonus = state.straightness * state.straightness * 200; // Quadratic reward for straightness
-  const straightnessPenalty = Math.max(0, 1 - state.straightness) * 80; // Penalty for crookedness
+  const straightnessBonus = state.straightness * state.straightness * 200; 
+  const straightnessPenalty = Math.max(0, 1 - state.straightness) * 80; 
   const activeEnergy = params.cell ? params.cell.energy : 0;
   const sunBonus = params.sunAlignment * params.sunAlignment * 250;
   const stabilityBonus = Math.max(0, 1 - Math.abs(state.bladeAngle) * 0.35) * 40;
   const activeBonus = activeEnergy * 16;
 
-  // Lisätään leafBonusScore kokonaispisteisiin
   state.score = Math.floor(
     heightBonus + 
     leafBonusScore + 
@@ -1029,10 +1013,6 @@ function getNextSunAngle() {
   const minDistance = 30;
 
   function randomPlayableAngle() {
-    // Playable sector:
-    // 300°–360° = west side
-    // 0°–60°    = east side
-    // 0°        = north / straight up
     return Math.random() < 0.5
       ? 300 + Math.random() * 60
       : Math.random() * 60;
@@ -1045,7 +1025,6 @@ function getNextSunAngle() {
 
   let nextAngle = randomPlayableAngle();
 
-  // Try to avoid a new sun position that is too close to the previous one.
   for (let i = 0; i < 24; i++) {
     if (angularDistance(nextAngle, state.sunAngleDeg) >= minDistance) {
       return nextAngle;
@@ -1054,7 +1033,6 @@ function getNextSunAngle() {
     nextAngle = randomPlayableAngle();
   }
 
-  // Fallback: still always stays inside the playable sector.
   return nextAngle;
 }
 
@@ -1066,7 +1044,6 @@ function advanceTurn() {
 
   state.turn += 1;
 
-  // Rangaistukset huonosta asennosta vuoron lopussa
   if (Math.abs(state.bladeAngle) > 1.25) {
     state.bladeLength = clamp(state.bladeLength - 0.35, 0, MAX_BLADE_LENGTH);
   }
@@ -1077,29 +1054,8 @@ function advanceTurn() {
 
   state.sunAngleDeg = getNextSunAngle();
 
-  // Asetetaan ehdotettu solu valmiiksi uuden auringon mukaan
-	state.selectedCellIndex = chooseNextSuggestedCell();
+  state.selectedCellIndex = chooseNextSuggestedCell();
   state.activeCellIndex = state.selectedCellIndex;
-}
-
-function getCellScreenPosition(cell, path) {
-  const sample = sampleBladePath(path, cell.positionAlongBlade);
-
-  const normalX = -Math.cos(sample.angle);
-  const normalY = -Math.sin(sample.angle);
-
-  const maxOffset = sample.width * 0.46;
-  const twistVisibility = Math.max(0.55, Math.cos(sample.twist) * 0.9);
-  const sideOffset = cell.offsetFromCenter * maxOffset * twistVisibility;
-
-  return {
-    x: sample.x + normalX * sideOffset,
-    y: sample.y + normalY * sideOffset,
-    angle: sample.angle,
-    width: sample.width,
-    twist: sample.twist,
-    visibleSide: twistVisibility,
-  };
 }
 
 function pickClosestCell(positionX, positionY, width, height) {
@@ -1221,7 +1177,6 @@ function drawBackground(w, h) {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
 
-  // Soft distant hills
   ctx.fillStyle = "#9fd687";
   ctx.beginPath();
   ctx.moveTo(0, h * 0.64);
@@ -1238,7 +1193,6 @@ function drawBackground(w, h) {
   ctx.closePath();
   ctx.fill();
 
-  // Foreground meadow
   const ground = ctx.createLinearGradient(0, h * 0.62, 0, h);
   ground.addColorStop(0, "#7bd96b");
   ground.addColorStop(0.45, "#65bd56");
@@ -1305,7 +1259,6 @@ function drawFlowerMeadow(w, h) {
     const flowerSize = 3.5 + ((i * 5) % 5);
     const sway = Math.sin(performance.now() * 0.0015 + i * 0.6) * 2.2;
 
-    // stem
     ctx.strokeStyle = "rgba(37, 128, 48, 0.82)";
     ctx.lineWidth = 1.4;
     ctx.beginPath();
@@ -1318,7 +1271,6 @@ function drawFlowerMeadow(w, h) {
     );
     ctx.stroke();
 
-    // leaves
     ctx.fillStyle = "rgba(70, 175, 73, 0.82)";
     ctx.beginPath();
     ctx.ellipse(
@@ -1347,7 +1299,6 @@ function drawFlowerMeadow(w, h) {
     const flowerX = x + sway * 1.5;
     const flowerY = baseY - stemHeight;
 
-    // petals
     for (let p = 0; p < 6; p++) {
       const angle = p * Math.PI / 3;
       ctx.fillStyle = colors[(i + p) % colors.length];
@@ -1363,7 +1314,6 @@ function drawFlowerMeadow(w, h) {
       ctx.fill();
     }
 
-    // center
     ctx.fillStyle = "#ffef62";
     ctx.beginPath();
     ctx.arc(flowerX, flowerY, flowerSize * 0.75, 0, Math.PI * 2);
@@ -1376,7 +1326,6 @@ function drawFlowerMeadow(w, h) {
 function drawButterflies(w, h) {
   const t = performance.now() * 0.001;
 
-  // y-arvoja nostettu (esim. 0.28 -> 0.75), jotta ne ovat kukkien luona
   const butterflies = [
     { x: 0.18, y: 0.75, colorA: "#ff7ae8", colorB: "#ffd1f4", speed: 0.85 },
     { x: 0.43, y: 0.78, colorA: "#79a8ff", colorB: "#c9ddff", speed: 1.10 },
@@ -1392,7 +1341,7 @@ function drawButterflies(w, h) {
 
     const y =
       h * b.y +
-      Math.cos(t * b.speed * 1.7 + i) * h * 0.025; // Liikelaajuutta pienennetty (0.035 -> 0.025)
+      Math.cos(t * b.speed * 1.7 + i) * h * 0.025; 
 
     const flap =
       7 +
@@ -1402,7 +1351,6 @@ function drawButterflies(w, h) {
     ctx.translate(x, y);
     ctx.rotate(Math.sin(t * 1.8 + i) * 0.22);
 
-    // wings
     ctx.fillStyle = b.colorA;
     ctx.beginPath();
     ctx.ellipse(-7, 0, 10, Math.max(3, flap), 0.42, 0, Math.PI * 2);
@@ -1413,11 +1361,9 @@ function drawButterflies(w, h) {
     ctx.ellipse(7, 0, 10, Math.max(3, flap), -0.42, 0, Math.PI * 2);
     ctx.fill();
 
-    // body
     ctx.fillStyle = "rgba(34, 28, 30, 0.95)";
     ctx.fillRect(-1.2, -7, 2.4, 14);
 
-    // antennae
     ctx.strokeStyle = "rgba(34, 28, 30, 0.9)";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1434,8 +1380,6 @@ function drawButterflies(w, h) {
 function drawBee(w, h) {
   const t = performance.now() * 0.001;
 
-  // x siirretty 0.73 -> 0.85 (kauemmas oikealle)
-  // y siirretty 0.36 -> 0.65 (alemmas kohti niittyä)
   const x =
     w * 0.85 +
     Math.cos(t * 1.15) * w * 0.09 +
@@ -1449,13 +1393,11 @@ function drawBee(w, h) {
   ctx.translate(x, y);
   ctx.rotate(Math.sin(t * 2.4) * 0.18);
 
-  // shadow glow
   ctx.fillStyle = "rgba(255, 230, 80, 0.16)";
   ctx.beginPath();
   ctx.ellipse(0, 2, 25, 16, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // wings
   const wingFlap = Math.sin(t * 28) * 2.5;
 
   ctx.fillStyle = "rgba(255,255,255,0.72)";
@@ -1472,7 +1414,6 @@ function drawBee(w, h) {
   ctx.fill();
   ctx.stroke();
 
-  // body
   ctx.fillStyle = "#ffd000";
   ctx.strokeStyle = "rgba(45, 35, 20, 0.85)";
   ctx.lineWidth = 1.3;
@@ -1481,7 +1422,6 @@ function drawBee(w, h) {
   ctx.fill();
   ctx.stroke();
 
-  // stripes
   ctx.strokeStyle = "rgba(20, 20, 20, 0.9)";
   ctx.lineWidth = 2;
 
@@ -1492,19 +1432,16 @@ function drawBee(w, h) {
     ctx.stroke();
   }
 
-  // head
   ctx.fillStyle = "rgba(35, 30, 22, 0.95)";
   ctx.beginPath();
   ctx.arc(14, -1, 5.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // eye
   ctx.fillStyle = "white";
   ctx.beginPath();
   ctx.arc(16, -3, 1.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // tiny stinger
   ctx.fillStyle = "rgba(30, 25, 20, 0.9)";
   ctx.beginPath();
   ctx.moveTo(-16, 0);
@@ -1619,7 +1556,6 @@ function drawBladeSilhouette(path) {
   ctx.fill();
   ctx.stroke();
 
-  // Draw twist spiral stripes for visual feedback
   ctx.save();
   ctx.strokeStyle = "rgba(0, 30, 0, 0.45)";
   ctx.lineWidth = 1.2;
@@ -1682,8 +1618,6 @@ function drawBladeShadow(path, w, h) {
   const groundY = h * 0.92;
   const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
 
-  // Project every blade path point onto the ground opposite from the sun.
-  // This makes the shadow length, width and shape follow the real plant curve.
   const shadowDirX = -Math.sin(sunAngleRad);
   const shadowDirY = 0.22;
   const projected = path.map((p) => {
@@ -1715,7 +1649,6 @@ function drawBladeShadow(path, w, h) {
     ctx.stroke();
   }
 
-  // Small soft contact shadow at the root.
   const base = path[0];
   ctx.filter = "blur(3px)";
   ctx.fillStyle = "rgba(25, 60, 24, 0.26)";
@@ -1756,31 +1689,21 @@ function drawRoundedCell(x, y, w, h, r) {
 function drawSprout(ctx, cellWidth, cellHeight, cellColor, i) {
     ctx.save();
     
-    // Käytetään solun indeksiä (i) määrittämään puoli pysyvästi
-    // i % 2 === 0 -> parilliset oikealle, parittomat vasemmalle
     const side = (i % 2 === 0) ? 1 : -1; 
-    
-    // Siirretään tyvi solun reunaan
     ctx.translate(side * cellWidth * 0.5, 0);
-    
-    // Käännetään lehteä hieman yläviistoon (30 astetta)
     ctx.rotate(side * -Math.PI / 6); 
     
-    // LEHDEN RUNKO (Tehty 3x isommaksi ja selkeämmäksi)
-    ctx.fillStyle = "#86c85b"; // Luonnollinen kirkas vihreä
-    ctx.strokeStyle = "#1a3d12"; // Tumma reuna selkeyden vuoksi
+    ctx.fillStyle = "#86c85b"; 
+    ctx.strokeStyle = "#1a3d12"; 
     ctx.lineWidth = 1.5;
     
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    // quadraticCurveTo(ohjauspisteX, ohjauspisteY, lopetusX, lopetusY)
-    // Pituutta kasvatettu 22 -> 45
-    ctx.quadraticCurveTo(side * 15, -20, side * 45, 0); // Lehden yläkaari
-    ctx.quadraticCurveTo(side * 15, 20, 0, 0);   // Lehden alakaari
+    ctx.quadraticCurveTo(side * 15, -20, side * 45, 0); 
+    ctx.quadraticCurveTo(side * 15, 20, 0, 0);   
     ctx.fill();
     ctx.stroke();
     
-    // LEHTISUONI (Valkoinen ja selkeä)
     ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -1811,7 +1734,6 @@ function drawCellsOnBlade(path) {
   }
   ctx.restore();
 
-  // Toinen passi: Solut ja uudet efektit
   for (let i = 0; i < state.cells.length; i++) {
     const cell = state.cells[i];
     const pos = getCellScreenPosition(cell, path);
@@ -1820,17 +1742,15 @@ function drawCellsOnBlade(path) {
     const isSelected = state.selectedCellIndex === i;
     const isActive = state.activeCellIndex === i;
 
-    // Lasketaan energian taso (0.0 - 1.0)
     const energyLevel = cell.energy / 4.5;
 
-    // Väri ja valoisuus - nostettu maksimia, jotta aurinko korostuu paremmin
     const saturation = cell.isStrong ? 98 : 76;
     const energyEffect = energyLevel * 15;
     const twistBoost = Math.abs(cell.offsetFromCenter) * 16;
     const lightness = clamp(
       42 + exposure * 28 + energyEffect + activeInfluence * 12 + twistBoost,
       38,
-      94 // Nostettu 88 -> 94
+      94 
     );
 
     const hueShift = (cell.offsetFromCenter * 3 + cell.progress * 2) % 20;
@@ -1847,7 +1767,6 @@ function drawCellsOnBlade(path) {
     ctx.translate(pos.x, pos.y);
     ctx.rotate(pos.angle + Math.PI / 2 + pos.twist * 1.2 + cell.offsetFromCenter * 0.24);
 
-    // --- UUSI EFEKTI 1: Energiatason hehku ---
     if (energyLevel > 0.6) {
       const glowPulse = Math.sin(performance.now() * 0.008) * 5;
       ctx.shadowColor = energyLevel > 0.9 ? "#fffb00" : "#ccff00";
@@ -1857,7 +1776,6 @@ function drawCellsOnBlade(path) {
       ctx.shadowBlur = 4;
     }
 
-    // Solun runko
     ctx.fillStyle = cellColor;
     ctx.strokeStyle = `rgba(21, 64, 25, ${isActive ? 0.95 : 0.75})`;
     ctx.lineWidth = isActive ? 2.2 : 1.4;
@@ -1865,25 +1783,21 @@ function drawCellsOnBlade(path) {
     drawRoundedCell(0, 0, cellWidth, cellHeight, 3.2);
     ctx.fill();
     ctx.stroke();
-    ctx.shadowBlur = 0; // Nollataan varjo seuraavia varten
+    ctx.shadowBlur = 0; 
 
-    // Jos solu on kerännyt paljon energiaa (altistunut auringolle), se "versoo"
     if (energyLevel > 0.65) {
       drawSprout(ctx, cellWidth, cellHeight, cellColor, i);
     }
 
-    // Kiilto ja sisäiset heijastukset (pysyy ennallaan)
     ctx.fillStyle = `rgba(255,255,255,${0.18 + exposure * 0.24})`;
     drawRoundedCell(-cellWidth * 0.18, -cellHeight * 0.24, cellWidth * 0.52, cellHeight * 0.38, 2.6);
     ctx.fill();
 
-    // Valopilkut
     ctx.fillStyle = `rgba(255,255,255,${0.08 + exposure * 0.12})`;
     ctx.beginPath();
     ctx.arc(-cellWidth * 0.28, cellHeight * 0.18, cellWidth * 0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    // Aktiivisen/valitun solun korostukset
     if (isSelected || isActive) {
       ctx.strokeStyle = isActive ? "rgba(100, 200, 255, 0.95)" : "rgba(150, 220, 255, 0.78)";
       ctx.lineWidth = isActive ? 2.6 : 1.9;
@@ -1908,7 +1822,6 @@ function drawCellsOnBlade(path) {
       }
     }
 
-    // Jakautumisviivat
     if (cell.division > 0.3) {
       ctx.strokeStyle = `rgba(165, 210, 120, ${cell.division * 0.3})`;
       ctx.lineWidth = 0.8;
@@ -2122,7 +2035,6 @@ function drawTopDownHUD(w, h) {
   const hudCenterX = hudX + hudSize * 0.5;
   const hudCenterY = hudY + hudSize * 0.5;
 
-  // Sun ray overlay in the left HUD.
   const rayLength = hudSize * 0.78;
   ctx.save();
   ctx.translate(hudCenterX, hudCenterY);
@@ -2217,7 +2129,6 @@ function drawTopDownHUD(w, h) {
 function drawSunAlignmentMessages(w, h, params) {
   const currentTime = performance.now() / 1000;
   
-  // Näytä "perfect position towards sun" kun alignment on yli 92%
   if (params.sunAlignment > 0.92) {
     const timeSinceMessage = currentTime - state.perfectSunMessageTime;
     if (timeSinceMessage < 2.0) {
@@ -2239,7 +2150,6 @@ function drawSunAlignmentMessages(w, h, params) {
       ctx.restore();
     }
   } 
-  // Näytä "turning to sun" kun alignment on 65-92%
   else if (params.sunAlignment > 0.65) {
     const timeSinceMessage = currentTime - state.lastSunAlignmentMessage;
     if (timeSinceMessage < 1.2) {
@@ -2263,13 +2173,11 @@ function drawEndGameAnimation(w, h) {
   const animProgress = getScoringAnimationProgress();
   const animatedScore = getAnimatedFinalScore();
   
-  // Semi-transparent overlay
   ctx.save();
   ctx.fillStyle = `rgba(0, 0, 0, ${0.4 * animProgress})`;
   ctx.fillRect(0, 0, w, h);
   ctx.restore();
   
-  // Animated final score display
   if (animProgress > 0.1) {
     ctx.save();
     ctx.font = "900 4rem Manrope, sans-serif";
@@ -2298,11 +2206,6 @@ function drawEndGameAnimation(w, h) {
     ctx.shadowBlur = 0;
     ctx.restore();
   }
-  
-  // Show full end screen when animation is done
-  if (animProgress >= 0.99 && !state.hallRecorded) {
-    // This will be called from updateGame
-  }
 }
 
 function drawCountdownMessage(w, h) {
@@ -2310,7 +2213,6 @@ function drawCountdownMessage(w, h) {
   
   const timeLeft = TURN_DURATION - state.turnTime;
   
-  // Show countdown message 5 seconds before final month ends
   if (timeLeft < 5 && timeLeft > 0) {
     const pulse = 0.5 + Math.sin(timeLeft * Math.PI * 4) * 0.5;
     const alphaIntensity = 0.6 + pulse * 0.4;
@@ -2343,8 +2245,6 @@ function draw() {
 
   ctx.clearRect(0, 0, w, h);
 
-  // The background must stay unscaled. Scaling it caused the visible play area
-  // to split into two separate rectangles when the camera zoomed out.
   drawBackground(w, h);
   drawSunArc(w, h);
 
@@ -2373,15 +2273,12 @@ function draw() {
     }
   }
   
-  // Draw end game animation if game has ended
   if (state.isGameEnded) {
-    // Calculate final scores only once when game just ended
     if (state.finalMaxHeight === 0 && state.finalEffectiveHeight === 0) {
       state.finalMaxHeight = state.actualHeight;
       state.finalEffectiveHeight = calculateEffectiveBladeHeight(w, h);
       state.finalStraightness = state.straightness;
       
-      // Record in hall of fame
       const finalScore = Math.floor(
         state.finalEffectiveHeight + 
         (state.finalStraightness * state.finalStraightness * (state.finalMaxHeight * 0.1)) +
@@ -2408,10 +2305,23 @@ function loop(timestamp) {
 }
 
 function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    canvas.parentElement.requestFullscreen?.();
+  const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+  
+  if (!fullscreenElement) {
+    const container = document.getElementById("gameContainer") || canvas.parentElement;
+    if (container.requestFullscreen) {
+      container.requestFullscreen();
+    } else if (container.webkitRequestFullscreen) {
+      container.webkitRequestFullscreen();
+    } else if (canvas.requestFullscreen) {
+      canvas.requestFullscreen();
+    }
   } else {
-    document.exitFullscreen?.();
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
   }
 }
 
@@ -2427,7 +2337,6 @@ function init() {
   showStartScreen();
   ensureCanvasSize();
 
-  // Hide HTML score elements to make room for blade
   if (timeLeftEl) {
     timeLeftEl.style.display = "none";
     timeLeftEl.textContent = "0:05";
@@ -2438,23 +2347,30 @@ function init() {
     monthEl.textContent = `0/${GAME_TURNS}`;
   }
 
-window.addEventListener("resize", () => {
+  window.addEventListener("resize", () => {
     ensureCanvasSize();
     draw();
   });
 
   canvas.addEventListener("pointerdown", handleCanvasPointer);
   canvas.addEventListener("pointermove", (event) => {
-    if ((event.buttons || event.pointerType === "touch") && state.running) {
+    if ((event.buttons || event.pointerType === "touch" || event.pointerType === "pen") && state.running) {
       handleCanvasPointer(event);
     }
   });
 
-window.addEventListener("keydown", handleKeyboard);
-  resetBtn.addEventListener("click", startGame);
-  hallBtn.addEventListener("click", () => toggleHallPanel());
-  clearHallBtn.addEventListener("click", clearHallOfFame);
-  fullscreenBtn.addEventListener("click", toggleFullscreen);
+  window.addEventListener("keydown", handleKeyboard);
+  if (resetBtn) resetBtn.addEventListener("click", startGame);
+  if (hallBtn) hallBtn.addEventListener("click", () => toggleHallPanel());
+  if (clearHallBtn) clearHallBtn.addEventListener("click", clearHallOfFame);
+
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener("click", toggleFullscreen);
+    fullscreenBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      toggleFullscreen();
+    }, { passive: false });
+  }
 
   window.requestAnimationFrame((timestamp) => {
     state.lastTimestamp = timestamp;
