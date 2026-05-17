@@ -2481,47 +2481,38 @@ canvas.addEventListener("touchend", (e) => {
   const TAP_LIMIT = 16;
   const SWIPE_LIMIT = 32;
 
-  // Kevyt napautus
-  if (
-    absX < TAP_LIMIT &&
-    absY < TAP_LIMIT &&
-    tapDuration < 240
-  ) {
-    const rect = canvas.getBoundingClientRect();
+// Kevyt napautus
+if (
+  absX < TAP_LIMIT &&
+  absY < TAP_LIMIT &&
+  tapDuration < 240
+) {
+  const rect = canvas.getBoundingClientRect();
 
-    let x = t.clientX - rect.left;
-    let y = t.clientY - rect.top;
+  let x = t.clientX - rect.left;
+  let y = t.clientY - rect.top;
 
-    const zoom = 1.0 - (state.bladeLength / MAX_BLADE_LENGTH) * 0.4;
-    const zoomCenterX = rect.width * 0.5;
-    const zoomCenterY = rect.height * 0.92;
+  const zoom = 1.0 - (state.bladeLength / MAX_BLADE_LENGTH) * 0.4;
+  const zoomCenterX = rect.width * 0.5;
+  const zoomCenterY = rect.height * 0.92;
 
-    x = zoomCenterX + (x - zoomCenterX) / zoom;
-    y = zoomCenterY + (y - zoomCenterY) / zoom;
+  x = zoomCenterX + (x - zoomCenterX) / zoom;
+  y = zoomCenterY + (y - zoomCenterY) / zoom;
 
-    const pickedIndex = pickClosestCell(x, y, rect.width, rect.height);
+  const pickedIndex = pickClosestCell(x, y, rect.width, rect.height);
 
-    if (pickedIndex === -1) return;
-
-    const pickedCell = state.cells[pickedIndex];
-    const currentCell = state.cells[state.selectedCellIndex];
-
-    if (!pickedCell || !currentCell) return;
-
-    // Jos napautat samaa solutasoa, vaihdetaan seuraavaan soluun
-    if (pickedCell.row === currentCell.row) {
-      cycleRowCell(1);
-    }
-
-    // Jos napautat eri solutasoa, valitaan suoraan se solu
-    else {
-      state.selectedCellIndex = pickedIndex;
-      state.activeCellIndex = pickedIndex;
-      navigator.vibrate?.(10);
-    }
-
+  // Jos napautus osuu soluun, valitaan juuri se solu
+  if (pickedIndex !== -1) {
+    state.selectedCellIndex = pickedIndex;
+    state.activeCellIndex = pickedIndex;
+    navigator.vibrate?.(10);
     return;
   }
+
+  // Jos napautetaan tyhjää kohtaa, vaihdetaan seuraavaan saman rivin soluun
+  cycleRowCell(1);
+  return;
+}
 
   // Vaakasuuntainen pyyhkäisy
   if (absX > SWIPE_LIMIT && absX > absY) {
