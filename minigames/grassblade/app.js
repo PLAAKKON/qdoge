@@ -72,6 +72,7 @@ function installLayoutFixes() {
 
   const style = document.createElement("style");
   style.id = "grassblade-layout-fixes";
+
   style.textContent = `
     .mouse-control-panel,
     .mouse-panel,
@@ -88,55 +89,96 @@ function installLayoutFixes() {
     #touchControl,
     #joystickPanel,
     #sliderPanel {
-      display: none !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
+      display:none !important;
+      visibility:hidden !important;
+      pointer-events:none !important;
     }
 
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
+    html,
+    body {
+      margin:0;
+      padding:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+    }
+
+    body {
+      overscroll-behavior:none;
+      touch-action:manipulation;
     }
 
     #grassCanvas {
-      width: 100% !important;
-      height: 100% !important;
-      display: block !important;
-      background: transparent !important;
-      touch-action: none !important;
+      width:100% !important;
+      height:100% !important;
+      display:block !important;
+      background:transparent !important;
+      touch-action:none !important;
     }
 
-    .overlay-message {
-      box-sizing: border-box !important;
-      max-width: 100vw !important;
-      padding: 12px !important;
+    /* Overlay fills screen but keeps tiny safety padding */
+    .overlay-message{
+      width:100vw !important;
+      max-width:100vw !important;
+      padding:6px !important;
+      box-sizing:border-box !important;
+      overflow:hidden !important;
     }
 
-    .start-screen-inner {
-      width: 92% !important;
-      max-width: 480px !important;
-      box-sizing: border-box !important;
-      margin: 0 auto !important;
+    /* Start screen uses almost full mobile width */
+    .start-screen-inner{
+      width:calc(100vw - 12px) !important;
+      max-width:560px !important;
+      margin:0 auto !important;
+      padding:10px !important;
+      box-sizing:border-box !important;
+      overflow:hidden !important;
     }
 
-    .start-actions {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 8px !important;
-      justify-content: center !important;
-      width: 100% !important;
+    .hero-copy,
+    .start-actions,
+    .start-tip,
+    .start-description,
+    .hall-of-fame-display{
+      width:100% !important;
+      max-width:100% !important;
+      box-sizing:border-box !important;
+      overflow-wrap:anywhere !important;
+      word-break:break-word !important;
     }
 
-    .btn {
-      padding: 10px 14px !important;
-      font-size: clamp(0.8rem, 3.5vw, 1.1rem) !important;
-      max-width: 100% !important;
-      box-sizing: border-box !important;
+    /* GRASSBLADE title fix */
+    .hero-copy h1{
+      margin:0 0 10px 0 !important;
+      font-size:clamp(2.2rem,11vw,4.8rem) !important;
+      line-height:0.95 !important;
+      max-width:100% !important;
+      overflow-wrap:anywhere !important;
+      word-break:break-word !important;
+    }
+
+    .start-actions{
+      display:flex !important;
+      flex-wrap:wrap !important;
+      justify-content:center !important;
+      gap:8px !important;
+      width:100% !important;
+    }
+
+    .btn{
+      padding:10px 14px !important;
+      font-size:clamp(.8rem,3.5vw,1.1rem) !important;
+      white-space:normal !important;
+      max-width:100% !important;
+      box-sizing:border-box !important;
+    }
+
+    .hall-panel{
+      max-width:calc(100vw - 12px) !important;
+      overflow:auto !important;
     }
   `;
+
   document.head.appendChild(style);
 }
 
@@ -163,7 +205,6 @@ function normalizeAngle(angle) {
 function constrainSunToNorthernHemisphere(angleDeg) {
   let angle = angleDeg % 360;
   if (angle < 0) angle += 360;
-  
   if (angle > 90 && angle < 270) {
     if (angle < 180) {
       angle = 90;
@@ -363,7 +404,6 @@ function startGame() {
 
 function generateCellLattice() {
   state.cells = [];
-
   for (let row = 0; row < CELL_ROWS; row++) {
     const progress = (row + 0.5) / CELL_ROWS;
     const usableColumns = CELL_COLUMNS;
@@ -416,7 +456,6 @@ function getInitialActiveCellIndex() {
 
 function showEndScreen() {
   const animatedScore = getAnimatedFinalScore();
-  
   const hallOfFameScores = loadHallOfFame();
   const isHighScore = hallOfFameScores.length < 3 || state.finalScore >= hallOfFameScores[hallOfFameScores.length - 1];
   const rankIndex = hallOfFameScores.findIndex(score => state.finalScore >= score);
@@ -497,13 +536,11 @@ function getNaturalCurve(progress) {
 function getSurfaceNormal(cell, progress) {
   const localTwist = getLocalTwist(progress);
   let localBend = 0;
-
   const active = getActiveCell();
 
   if (active) {
     const center = state.localBendCenter ?? active.positionAlongBlade;
     const radius = state.localBendWidth ?? 0.24;
-
     const distance = progress - center;
 
     const radiusInfluence = smootherstep(
@@ -713,13 +750,9 @@ function calculateEffectiveBladeHeight(w, h) {
 
 function calculateFinalScore(w, h) {
   const maxHeight = state.actualHeight;
-  
   const effectiveHeight = calculateEffectiveBladeHeight(w, h);
-  
   const baseScore = Math.max(0, effectiveHeight);
-  
   const straightnessBonus = state.straightness * state.straightness * (maxHeight * 0.1);
-  
   const totalScore = Math.floor(baseScore + straightnessBonus);
   
   return totalScore;
@@ -740,7 +773,6 @@ function getGrowthParameters() {
   }
 
   const sunAngleRad = (state.sunAngleDeg * Math.PI) / 180;
-
   const directBend = activeCell.offsetFromCenter;
   const activeStrength = clamp(0.5 + activeCell.energy * 0.08, 0.5, 1.6);
 
@@ -855,8 +887,8 @@ function updateSunAlignmentMessages(params, currentTime) {
     }
     const perfectDuration = currentTime - state.lastPerfectAlignmentStart;
     if (perfectDuration > 0.5 && perfectDuration < TURN_DURATION - 0.1) {
-      state.perfectAlignmentBonus += state.finalMaxHeight * 0.05; 
-      state.lastPerfectAlignmentStart = currentTime; 
+      state.perfectAlignmentBonus += state.finalMaxHeight * 0.05;
+      state.lastPerfectAlignmentStart = currentTime;
     }
   } else {
     state.lastPerfectAlignmentStart = null;
@@ -865,7 +897,6 @@ function updateSunAlignmentMessages(params, currentTime) {
   if (params.sunAlignment > 0.92) {
     if (currentTime - state.lastSunAlignmentMessage > 1.0) {
       state.lastSunAlignmentMessage = currentTime;
-      
       if (params.sunAlignment > 0.92) {
         state.showingPerfectSunMessage = true;
         state.perfectSunMessageTime = currentTime;
@@ -877,7 +908,7 @@ function updateSunAlignmentMessages(params, currentTime) {
 function getScoringAnimationProgress() {
   if (!state.isGameEnded) return 0;
   const elapsed = performance.now() / 1000 - state.gameEndTime;
-  const duration = 3.5; 
+  const duration = 3.5;
   const progress = Math.min(elapsed / duration, 1);
   return smootherstep(progress);
 }
@@ -896,21 +927,18 @@ function updateGame(dt) {
       state.endScreenShown = true;
       showEndScreen();
     }
-
     return;
   }
 
   if (!state.running) return;
 
   state.turnTime += dt;
-
   state.activeCellIndex = state.selectedCellIndex;
 
   const params = getGrowthParameters();
   const currentTime = performance.now() / 1000;
   
   updateSunAlignmentMessages(params, currentTime);
-  
   const activationGrowth = updateCellGrowth(dt);
 
   state.bladeAngularVelocity +=
@@ -948,8 +976,8 @@ function updateGame(dt) {
   const leafBonusScore = leafCount * 10; 
 
   const heightBonus = state.actualHeight * 1.2;
-  const straightnessBonus = state.straightness * state.straightness * 200; 
-  const straightnessPenalty = Math.max(0, 1 - state.straightness) * 80; 
+  const straightnessBonus = state.straightness * state.straightness * 200;
+  const straightnessPenalty = Math.max(0, 1 - state.straightness) * 80;
   const activeEnergy = params.cell ? params.cell.energy : 0;
   const sunBonus = params.sunAlignment * params.sunAlignment * 250;
   const stabilityBonus = Math.max(0, 1 - Math.abs(state.bladeAngle) * 0.35) * 40;
@@ -1029,7 +1057,6 @@ function getNextSunAngle() {
     if (angularDistance(nextAngle, state.sunAngleDeg) >= minDistance) {
       return nextAngle;
     }
-
     nextAngle = randomPlayableAngle();
   }
 
@@ -1053,9 +1080,28 @@ function advanceTurn() {
   }
 
   state.sunAngleDeg = getNextSunAngle();
-
   state.selectedCellIndex = chooseNextSuggestedCell();
   state.activeCellIndex = state.selectedCellIndex;
+}
+
+function getCellScreenPosition(cell, path) {
+  const sample = sampleBladePath(path, cell.positionAlongBlade);
+
+  const normalX = -Math.cos(sample.angle);
+  const normalY = -Math.sin(sample.angle);
+
+  const maxOffset = sample.width * 0.46;
+  const twistVisibility = Math.max(0.55, Math.cos(sample.twist) * 0.9);
+  const sideOffset = cell.offsetFromCenter * maxOffset * twistVisibility;
+
+  return {
+    x: sample.x + normalX * sideOffset,
+    y: sample.y + normalY * sideOffset,
+    angle: sample.angle,
+    width: sample.width,
+    twist: sample.twist,
+    visibleSide: twistVisibility,
+  };
 }
 
 function pickClosestCell(positionX, positionY, width, height) {
@@ -1209,7 +1255,6 @@ function drawBackground(w, h) {
 
 function drawMeadowGrass(w, h) {
   ctx.save();
-
   const startY = h * 0.66;
   const bladeCount = Math.floor(w / 9);
 
@@ -1224,7 +1269,6 @@ function drawMeadowGrass(w, h) {
       : "rgba(71, 150, 55, 0.46)";
 
     ctx.lineWidth = 1;
-
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.quadraticCurveTo(
@@ -1235,7 +1279,6 @@ function drawMeadowGrass(w, h) {
     );
     ctx.stroke();
   }
-
   ctx.restore();
 }
 
@@ -1319,13 +1362,11 @@ function drawFlowerMeadow(w, h) {
     ctx.arc(flowerX, flowerY, flowerSize * 0.75, 0, Math.PI * 2);
     ctx.fill();
   }
-
   ctx.restore();
 }
 
 function drawButterflies(w, h) {
   const t = performance.now() * 0.001;
-
   const butterflies = [
     { x: 0.18, y: 0.75, colorA: "#ff7ae8", colorB: "#ffd1f4", speed: 0.85 },
     { x: 0.43, y: 0.78, colorA: "#79a8ff", colorB: "#c9ddff", speed: 1.10 },
@@ -1341,7 +1382,7 @@ function drawButterflies(w, h) {
 
     const y =
       h * b.y +
-      Math.cos(t * b.speed * 1.7 + i) * h * 0.025; 
+      Math.cos(t * b.speed * 1.7 + i) * h * 0.025;
 
     const flap =
       7 +
@@ -1580,26 +1621,6 @@ function drawBladeSilhouette(path) {
   ctx.restore();
 }
 
-function getCellScreenPosition(cell, path) {
-  const sample = sampleBladePath(path, cell.positionAlongBlade);
-
-  const normalX = -Math.cos(sample.angle);
-  const normalY = -Math.sin(sample.angle);
-
-  const maxOffset = sample.width * 0.46;
-  const twistVisibility = Math.max(0.55, Math.cos(sample.twist) * 0.9);
-  const sideOffset = cell.offsetFromCenter * maxOffset * twistVisibility;
-
-  return {
-    x: sample.x + normalX * sideOffset,
-    y: sample.y + normalY * sideOffset,
-    angle: sample.angle,
-    width: sample.width,
-    twist: sample.twist,
-    visibleSide: twistVisibility,
-  };
-}
-
 function drawBlade(w, h) {
   const baseX = w * 0.5;
   const baseY = h * 0.92;
@@ -1688,19 +1709,18 @@ function drawRoundedCell(x, y, w, h, r) {
 
 function drawSprout(ctx, cellWidth, cellHeight, cellColor, i) {
     ctx.save();
-    
     const side = (i % 2 === 0) ? 1 : -1; 
     ctx.translate(side * cellWidth * 0.5, 0);
     ctx.rotate(side * -Math.PI / 6); 
     
-    ctx.fillStyle = "#86c85b"; 
-    ctx.strokeStyle = "#1a3d12"; 
+    ctx.fillStyle = "#86c85b";
+    ctx.strokeStyle = "#1a3d12";
     ctx.lineWidth = 1.5;
     
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(side * 15, -20, side * 45, 0); 
-    ctx.quadraticCurveTo(side * 15, 20, 0, 0);   
+    ctx.quadraticCurveTo(side * 15, -20, side * 45, 0);
+    ctx.quadraticCurveTo(side * 15, 20, 0, 0);
     ctx.fill();
     ctx.stroke();
     
@@ -1710,7 +1730,6 @@ function drawSprout(ctx, cellWidth, cellHeight, cellColor, i) {
     ctx.moveTo(5, 0);
     ctx.lineTo(side * 35, 0);
     ctx.stroke();
-
     ctx.restore();
 }
 
@@ -1743,14 +1762,13 @@ function drawCellsOnBlade(path) {
     const isActive = state.activeCellIndex === i;
 
     const energyLevel = cell.energy / 4.5;
-
     const saturation = cell.isStrong ? 98 : 76;
     const energyEffect = energyLevel * 15;
     const twistBoost = Math.abs(cell.offsetFromCenter) * 16;
     const lightness = clamp(
       42 + exposure * 28 + energyEffect + activeInfluence * 12 + twistBoost,
       38,
-      94 
+      94
     );
 
     const hueShift = (cell.offsetFromCenter * 3 + cell.progress * 2) % 20;
@@ -1783,7 +1801,7 @@ function drawCellsOnBlade(path) {
     drawRoundedCell(0, 0, cellWidth, cellHeight, 3.2);
     ctx.fill();
     ctx.stroke();
-    ctx.shadowBlur = 0; 
+    ctx.shadowBlur = 0;
 
     if (energyLevel > 0.65) {
       drawSprout(ctx, cellWidth, cellHeight, cellColor, i);
@@ -1830,7 +1848,6 @@ function drawCellsOnBlade(path) {
       ctx.lineTo(cellWidth * 0.35, 0);
       ctx.stroke();
     }
-
     ctx.restore();
   }
 }
@@ -2017,7 +2034,6 @@ function drawGridLines(w, h) {
     ctx.lineTo(x, baseY + 26);
     ctx.stroke();
   }
-
   ctx.restore();
 }
 
@@ -2289,7 +2305,6 @@ function draw() {
         state.hallRecorded = true;
       }
     }
-    
     drawEndGameAnimation(w, h);
   }
 }
