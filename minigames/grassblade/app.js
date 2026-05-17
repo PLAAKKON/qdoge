@@ -495,36 +495,62 @@ function getInitialActiveCellIndex() {
 function showEndScreen() {
   const animatedScore = getAnimatedFinalScore();
   const hallOfFameScores = loadHallOfFame();
-  const isHighScore = hallOfFameScores.length < 3 || state.finalScore >= hallOfFameScores[hallOfFameScores.length - 1];
-  const rankIndex = hallOfFameScores.findIndex(score => state.finalScore >= score);
-  const rank = rankIndex === -1 ? hallOfFameScores.length + 1 : rankIndex + 1;
 
-  let rankText = "";
-  if (isHighScore && rank <= 3) {
-    rankText = `🏆 HIGHSCORE #${rank}!`;
-  }
+  const isHighScore =
+    hallOfFameScores.length < 3 ||
+    state.finalScore >= hallOfFameScores[hallOfFameScores.length - 1];
 
-  let hallOfFameHtml = '<div class="hall-of-fame-display"><h3>TOP SCORES</h3><ol>';
+  const rankIndex = hallOfFameScores.findIndex(
+    score => state.finalScore >= score
+  );
+
+  const rank =
+    rankIndex === -1
+      ? hallOfFameScores.length + 1
+      : rankIndex + 1;
+
+  const rankText =
+    isHighScore && rank <= 3
+      ? `🏆 HIGHSCORE #${rank}!`
+      : "";
+
+  let scoresHtml = "";
+
   for (let i = 0; i < 3; i++) {
     const score = hallOfFameScores[i] ?? 0;
-    const highlight = score === animatedScore ? ' class="highlighted-score"' : "";
-    hallOfFameHtml += `<li${highlight}>${(score).toLocaleString()} cm</li>`;
+
+    const highlight =
+      score === state.finalScore
+        ? ' class="highlighted-score"'
+        : "";
+
+    scoresHtml += `<li${highlight}>${score.toLocaleString()} cm</li>`;
   }
-  hallOfFameHtml += '</ol></div>';
 
   overlayMessage.hidden = false;
   overlayMessage.className = "overlay-message start-screen";
+
   overlayMessage.innerHTML = `
-    <div class="start-screen-inner" style="max-height:90vh; overflow-y:auto; width:min(92vw,560px); box-sizing:border-box; padding:18px;">
-      <div class="hero-copy">
-        <h1 style="font-size:clamp(2rem,7vw,4rem); margin:0 0 8px; color:#ffd700;">HARVEST COMPLETE</h1>
-        <div class="final-score-display">
-          <div class="final-score-value" style="font-size:3.5rem; color:#ffd700;">${animatedScore.toLocaleString()}</div>
-          <div class="final-score-label" style="color:#86c85b;">centimeters</div>
-          ${rankText ? `<div class="rank-text" style="color:#ffd700; font-size:1.3rem; margin-top:8px;">${rankText}</div>` : ""}
+    <div class="end-screen-card">
+      <h1 class="end-title">HARVEST COMPLETE</h1>
+
+      <div class="final-score-display">
+        <div class="final-score-value">
+          ${animatedScore.toLocaleString()}
         </div>
-        ${hallOfFameHtml}
+
+        <div class="final-score-label">
+          centimeters
+        </div>
+
+        ${rankText ? `<div class="rank-text">${rankText}</div>` : ""}
       </div>
+
+      <div class="hall-of-fame-display">
+        <h3>TOP SCORES</h3>
+        <ol>${scoresHtml}</ol>
+      </div>
+
       <div class="start-actions">
         <button id="newGameBtn" class="btn btn-primary">START NEW GAME</button>
         <button id="highscoresBtn" class="btn btn-secondary">HIGH SCORES</button>
@@ -533,22 +559,11 @@ function showEndScreen() {
     </div>
   `;
 
-  document.getElementById("newGameBtn").addEventListener("click", startGame);
-document.getElementById("highscoresBtn").addEventListener("click", () => toggleHallPanel(true));
-document.getElementById("settingsBtn").addEventListener("click", () => showStartScreen());
+  document.getElementById("newGameBtn")?.addEventListener("click", startGame);
+  document.getElementById("highscoresBtn")?.addEventListener("click", showHighScoresScreen);
+  document.getElementById("settingsBtn")?.addEventListener("click", showStartScreen);
 
-setTimeout(() => {
-  const newGameBtn = document.getElementById("newGameBtn");
-
-  if (newGameBtn) {
-    newGameBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      startGame();
-    }, { passive: false });
-  }
-}, 0);
-
-setStartMode(true);
+  setStartMode(true);
 }
 
 function endGame() {
