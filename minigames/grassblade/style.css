@@ -150,7 +150,7 @@ body.start-mode .stage-wrap {
   color: #223523;
   background: rgba(247, 254, 244, 0.78);
   border-radius: 14px;
-  border: 1px dashed rgba(56, 95, 53, 0.42);
+  border: none;
 }
 
 .overlay-message[hidden],
@@ -387,7 +387,7 @@ body.start-mode .stage-wrap {
 
 .game-action-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 
