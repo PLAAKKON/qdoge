@@ -4,7 +4,8 @@ const http = require('node:http');
 
 const rootDir = __dirname;
 const port = Number(process.env.PORT) || 3000;
-const tokenAddress = 'E2AQyiZKYftVRvR4g8VMMBpfD86PiGicWWARKuJdpump';
+const tokenAddress = '0x0531B596C21B3aC983A1CcE35A5FaD3637103222';
+const chainId = 'base';
 const dexUrls = [
   `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
   `https://api.dexscreener.com/latest/dex/search/?q=${tokenAddress}`
@@ -69,7 +70,7 @@ async function fetchMarketStats() {
       const data = await apiResponse.json();
       const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
       const selectedPair = pairs
-        .filter((pair) => pair?.chainId === 'solana')
+        .filter((pair) => pair?.chainId === chainId)
         .sort((left, right) => Number(right?.liquidity?.usd || 0) - Number(left?.liquidity?.usd || 0))[0];
 
       if (!selectedPair) {
