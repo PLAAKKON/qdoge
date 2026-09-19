@@ -74,6 +74,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const marketStats = await fetchMarketStats();
             livePriceEl.textContent = formatUsd(marketStats.priceUsd);
+            if (marketStats.dexUrl) {
+                livePriceEl.setAttribute('href', marketStats.dexUrl);
+            }
             updateChangeDisplay(marketStats.priceChangeH24);
         } catch (error) {
             console.warn('Market stats refresh failed', error);

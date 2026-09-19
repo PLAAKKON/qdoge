@@ -1,6 +1,6 @@
 # QDOGE 🐕
 
-**The Quantum Doge on Solana**
+**The Quantum Doge on Base**
 
 A modern, responsive landing page for QDOGE meme token.
 
@@ -25,11 +25,14 @@ Simply host the files on any static web server:
 
 1. **GitHub Pages**: Push to a `gh-pages` branch
 2. **Vercel/Netlify**: Connect your repository
-3. **IPFS**: For decentralized hosting (ideal for .sol domain)
+3. **Railway**: `npm start` runs `server.js` (static files + `/api/market-stats`)
+4. **IPFS**: For decentralized hosting
 
 ## Domain
 
-Website designed for: **qdoge.sol**
+Production: https://qdoge-production.up.railway.app/  
+Base contract: `0x0531B596C21B3aC983A1CcE35A5FaD3637103222`  
+Token page: https://basestonk.io/tokens/0x0531b596c21b3ac983a1cce35a5fad3637103222
 
 ## Customization
 
